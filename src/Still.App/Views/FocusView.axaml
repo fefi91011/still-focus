@@ -1,0 +1,208 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Still.App.Controls"
+             x:Class="Still.App.Views.FocusView">
+  <StackPanel Spacing="16">
+    <Grid ColumnDefinitions="1.35*,*">
+      <Border Classes="hero" Margin="0,0,8,0">
+        <Grid ColumnDefinitions="Auto,*">
+          <Grid Width="228" Height="228" VerticalAlignment="Center">
+            <controls:ProgressRing Width="228"
+                                   Height="228"
+                                   Value="{Binding RingValue}"
+                                   StrokeThickness="11" />
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="2">
+              <TextBlock Text="{Binding PhaseLabel}"
+                         Classes="label"
+                         TextAlignment="Center"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="{Binding TimeLeft}"
+                         FontSize="43"
+                         FontWeight="Bold"
+                         TextAlignment="Center"
+                         HorizontalAlignment="Center" />
+              <TextBlock Text="{Binding TimerSubline}"
+                         Classes="muted"
+                         FontSize="9.5"
+                         TextAlignment="Center"
+                         TextWrapping="Wrap"
+                         Width="158" />
+            </StackPanel>
+          </Grid>
+
+          <StackPanel Grid.Column="1" Margin="22,0,0,0" Spacing="9" VerticalAlignment="Center">
+            <TextBlock Text="Fokus-Timer" Classes="h2" />
+            <TextBlock Text="{Binding TimerHint}"
+                       Classes="muted"
+                       FontSize="11.5"
+                       TextWrapping="Wrap"
+                       MaxWidth="360"
+                       HorizontalAlignment="Left" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,5,0,0" IsVisible="{Binding !IsLockdown}">
+              <Button Classes="primary" Content="Starten" Command="{Binding StartCommand}" IsVisible="{Binding CanStart}" />
+              <Button Classes="danger" Content="Beenden" Command="{Binding StopCommand}" IsVisible="{Binding CanStop}" />
+              <Button Classes="ghost" Content="Pause überspringen" Command="{Binding SkipCommand}" IsVisible="{Binding CanSkip}" />
+            </StackPanel>
+
+            <StackPanel Spacing="3" IsVisible="{Binding IsLockdown}">
+              <TextBlock Text="{Binding LockdownRemainingText}"
+                         FontSize="23"
+                         FontWeight="Bold"
+                         Foreground="{StaticResource DangerBrush}" />
+              <TextBlock Text="{Binding LockdownUntilText}" Classes="muted" FontSize="10.5" />
+            </StackPanel>
+
+            <Grid ColumnDefinitions="*,*" Margin="0,8,0,0">
+              <StackPanel Spacing="1">
+                <TextBlock Text="{Binding CompletedPhasesText}" FontSize="19" FontWeight="SemiBold" />
+                <TextBlock Text="Runden heute" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="1">
+                <TextBlock Text="{Binding FocusTodayText}" FontSize="19" FontWeight="SemiBold" />
+                <TextBlock Text="Fokus heute" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="16">
+        <Border Classes="card">
+          <StackPanel Spacing="9">
+            <TextBlock Text="Pomodoro" Classes="h3" />
+            <TextBlock Text="Vorlage" Classes="label" />
+            <ComboBox ItemsSource="{Binding Presets}"
+                      SelectedItem="{Binding SelectedPreset, Mode=TwoWay}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Spacing="0">
+                    <TextBlock Text="{Binding Name}" FontSize="11.5" />
+                    <TextBlock Text="{Binding Summary}" FontSize="9" Classes="dim" />
+                  </StackPanel>
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <Grid ColumnDefinitions="*,*">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Arbeit (Min)" Classes="label" />
+                <TextBox Text="{Binding WorkText, Mode=TwoWay}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="4">
+                <TextBlock Text="Pause (Min)" Classes="label" />
+                <TextBox Text="{Binding BreakText, Mode=TwoWay}" />
+              </StackPanel>
+            </Grid>
+
+            <Grid ColumnDefinitions="*,*">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Lange Pause" Classes="label" />
+                <TextBox Text="{Binding LongBreakText, Mode=TwoWay}" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="4">
+                <TextBlock Text="Runden" Classes="label" />
+                <TextBox Text="{Binding CyclesText, Mode=TwoWay}" />
+              </StackPanel>
+            </Grid>
+
+
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Grid>
+
+    <Border Classes="card">
+      <Grid ColumnDefinitions="*,330">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Border Classes="badge" Background="{StaticResource DangerSoftBrush}">
+              <TextBlock Text="COLD TURKEY" FontSize="8.5" Foreground="{StaticResource DangerBrush}" />
+            </Border>
+            <TextBlock Text="Keine Abkürzung" Classes="dim" FontSize="10" VerticalAlignment="Center" />
+          </StackPanel>
+          <TextBlock Text="Cold Turkey" Classes="h2" />
+          <TextBlock Text="{Binding LockdownDescription}"
+                     Classes="muted"
+                     FontSize="11.5"
+                     TextWrapping="Wrap"
+                     MaxWidth="620"
+                     HorizontalAlignment="Left" />
+
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,5,0,0">
+            <Border Classes="chip">
+              <TextBlock Text="Hosts-Datei" FontSize="9.5" Classes="muted" />
+            </Border>
+            <Border Classes="chip">
+              <TextBlock Text="Prozesse" FontSize="9.5" Classes="muted" />
+            </Border>
+            <Border Classes="chip">
+              <TextBlock Text="Watchdog" FontSize="9.5" Classes="muted" />
+            </Border>
+            <Border Classes="chip" IsVisible="{Binding CanOfferEarlyExit}">
+              <TextBlock Text="Freigabe per Code" FontSize="9.5" Classes="muted" />
+            </Border>
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" Spacing="9" IsVisible="{Binding IsLockdown}">
+            <TextBlock Text="{Binding LockdownRemainingText}"
+                       FontSize="22"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource DangerBrush}" />
+            <TextBlock Text="{Binding LockdownUntilText}"
+                       Classes="muted"
+                       VerticalAlignment="Bottom" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Margin="20,0,0,0" Spacing="7">
+          <TextBlock Text="Dauer in Minuten" Classes="label" />
+          <TextBox Text="{Binding ColdTurkeyMinutes, Mode=TwoWay}" />
+          <StackPanel Orientation="Horizontal" Spacing="5">
+            <Button Classes="ghost small" Content="25" Command="{Binding SetDurationCommand}" CommandParameter="25" />
+            <Button Classes="ghost small" Content="60" Command="{Binding SetDurationCommand}" CommandParameter="60" />
+            <Button Classes="ghost small" Content="120" Command="{Binding SetDurationCommand}" CommandParameter="120" />
+          </StackPanel>
+          <CheckBox Content="Browser zusätzlich sperren" IsChecked="{Binding BlockBrowsers, Mode=TwoWay}" />
+          <TextBox Text="{Binding Reason, Mode=TwoWay}" Watermark="Grund (optional)" />
+
+          <StackPanel Spacing="4" IsVisible="{Binding CanOfferEarlyExit}" Margin="0,2,0,0">
+            <TextBlock Text="Vorzeitige Freigabe" Classes="label" />
+            <ComboBox ItemsSource="{Binding Approvers}"
+                      SelectedItem="{Binding SelectedApprover, Mode=TwoWay}">
+              <ComboBox.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Name}" FontSize="11.5" />
+                </DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="{Binding EarlyExitOptionText}"
+                       Classes="dim"
+                       FontSize="9"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+
+          <Button Classes="danger"
+                  Content="Cold Turkey starten"
+                  Command="{Binding StartLockdownCommand}"
+                  IsEnabled="{Binding CanStartLockdown}"
+                  HorizontalAlignment="Stretch"
+                  Margin="0,3,0,0" />
+
+          <Button Classes="ghost"
+                  Content="Vorzeitig beenden"
+                  Command="{Binding EndLockdownEarlyCommand}"
+                  IsVisible="{Binding CanEndLockdownEarly}"
+                  HorizontalAlignment="Stretch" />
+          <TextBlock Text="{Binding EarlyExitHint}"
+                     Classes="dim"
+                     FontSize="9"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding CanEndLockdownEarly}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+  </StackPanel>
+</UserControl>

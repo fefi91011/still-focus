@@ -1,0 +1,128 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Still.App.Controls"
+             x:Class="Still.App.Views.ScheduleView">
+  <Grid ColumnDefinitions="1.65*,*">
+    <StackPanel Spacing="16">
+      <Border Classes="card" Padding="18">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Wochenansicht" Classes="h3" />
+              <TextBlock Text="{Binding ActiveNowText}" Classes="muted" FontSize="10.5" />
+            </StackPanel>
+            <TextBlock Grid.Column="1"
+                       Text="{Binding WeekHint}"
+                       Classes="dim"
+                       FontSize="9.5"
+                       MaxWidth="260"
+                       TextWrapping="Wrap"
+                       TextAlignment="Right" />
+          </Grid>
+
+          <controls:WeekGrid Height="430" Blocks="{Binding Blocks}" />
+
+          <TextBlock Text="Noch keine zeitlichen Regeln. Lege eine Regel mit Wochentagen an, um sie hier zu sehen."
+                     Classes="muted"
+                     FontSize="10.5"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding !HasWeekly}" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="8">
+          <TextBlock Text="REGELN IM ZEITPLAN" Classes="label" />
+          <ItemsControl ItemsSource="{Binding Legend}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,3,0,9">
+                  <Ellipse Width="8"
+                           Height="8"
+                           Fill="{Binding Color}"
+                           VerticalAlignment="Top"
+                           Margin="0,5,0,0" />
+                  <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="1">
+                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding ScheduleText}" FontSize="9.5" Classes="muted" />
+                    <TextBlock Text="{Binding TargetsText}"
+                               FontSize="9"
+                               Classes="dim"
+                               TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <StackPanel Grid.Column="2" Spacing="3" HorizontalAlignment="Right">
+                    <Border Classes="badge" Background="{StaticResource AccentSoftBrush}" IsVisible="{Binding IsAlways}">
+                      <TextBlock Text="IMMER" FontSize="8.5" Foreground="{StaticResource AccentBrush}" />
+                    </Border>
+                    <TextBlock Text="aktiv"
+                               FontSize="9"
+                               Classes="accent"
+                               HorizontalAlignment="Right"
+                               IsVisible="{Binding IsActive}" />
+                  </StackPanel>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+    <StackPanel Grid.Column="1" Margin="16,0,0,0" Spacing="16">
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <StackPanel Spacing="2">
+            <TextBlock Text="Ausnahmen" Classes="h3" />
+            <TextBlock Text="Fenster, in denen Regeln bewusst pausieren." Classes="dim" FontSize="10" />
+          </StackPanel>
+
+          <TextBlock Text="Keine Ausnahmen. Regeln greifen ohne Unterbrechung."
+                     Classes="muted"
+                     FontSize="10.5"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding !HasExceptions}" />
+
+          <ItemsControl ItemsSource="{Binding Exceptions}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Classes="panel" Margin="0,0,0,7">
+                  <StackPanel Spacing="3">
+                    <StackPanel Orientation="Horizontal" Spacing="7">
+                      <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" />
+                      <Border Classes="badge"
+                              Background="{StaticResource AccentSoftBrush}"
+                              IsVisible="{Binding IsActive}">
+                        <TextBlock Text="AKTIV" FontSize="8.5" Foreground="{StaticResource AccentBrush}" />
+                      </Border>
+                    </StackPanel>
+                    <TextBlock Text="{Binding TargetsText}" FontSize="10" Classes="muted" />
+                    <TextBlock Text="{Binding AvailabilityText}" FontSize="9" Classes="dim" />
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="hero" Padding="20">
+        <StackPanel Spacing="8">
+          <TextBlock Text="ZEITPLAN-LOGIK" Classes="label" Foreground="{StaticResource AccentBrush}" />
+          <TextBlock Text="Zeitfenster entscheiden, wann eine Regel überhaupt greift. Ein Tageslimit zählt über den ganzen Tag – auch außerhalb des Fensters."
+                     Classes="muted"
+                     FontSize="11"
+                     TextWrapping="Wrap" />
+          <TextBlock Text="Übernacht-Fenster werden automatisch auf beide Tage verteilt."
+                     Classes="dim"
+                     FontSize="10"
+                     TextWrapping="Wrap" />
+          <Button Classes="ghost"
+                  Content="Regeln bearbeiten"
+                  Command="{Binding OpenRulesCommand}"
+                  HorizontalAlignment="Left"
+                  Margin="0,4,0,0" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </Grid>
+</UserControl>

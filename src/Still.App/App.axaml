@@ -1,0 +1,64 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Still.App.ViewModels"
+             xmlns:views="using:Still.App.Views"
+             x:Class="Still.App.App"
+             RequestedThemeVariant="Dark">
+  <Application.Resources>
+    <SolidColorBrush x:Key="AppBgBrush" Color="#0A0C0F" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#111419" />
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="#151A21" />
+    <SolidColorBrush x:Key="SurfaceSoftBrush" Color="#0E1217" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#232A34" />
+    <SolidColorBrush x:Key="BorderSoftBrush" Color="#1B222B" />
+    <SolidColorBrush x:Key="TextBrush" Color="#F1F4F7" />
+    <SolidColorBrush x:Key="MutedBrush" Color="#99A3B2" />
+    <SolidColorBrush x:Key="DimBrush" Color="#6C7686" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#C4F5A9" />
+    <SolidColorBrush x:Key="AccentDeepBrush" Color="#A9E58F" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#1B261C" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#F08A82" />
+    <SolidColorBrush x:Key="DangerSoftBrush" Color="#2A1717" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#F3C978" />
+    <SolidColorBrush x:Key="WarningSoftBrush" Color="#2A2417" />
+    <SolidColorBrush x:Key="InfoBrush" Color="#8FB8F0" />
+    <LinearGradientBrush x:Key="HeroBrush" StartPoint="0%,0%" EndPoint="100%,100%">
+      <GradientStop Color="#16201A" Offset="0" />
+      <GradientStop Color="#111519" Offset="0.55" />
+      <GradientStop Color="#141821" Offset="1" />
+    </LinearGradientBrush>
+    <Color x:Key="SystemAccentColor">#C4F5A9</Color>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+    <StyleInclude Source="avares://Still.App/Styles/Theme.axaml" />
+  </Application.Styles>
+
+  <Application.DataTemplates>
+    <DataTemplate DataType="vm:TodayViewModel">
+      <views:TodayView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:RulesViewModel">
+      <views:RulesView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ScheduleViewModel">
+      <views:ScheduleView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:FocusViewModel">
+      <views:FocusView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TasksViewModel">
+      <views:TasksView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ContactsViewModel">
+      <views:ContactsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:StatsViewModel">
+      <views:StatsView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SettingsViewModel">
+      <views:SettingsView />
+    </DataTemplate>
+  </Application.DataTemplates>
+</Application>

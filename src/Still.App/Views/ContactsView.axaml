@@ -1,0 +1,164 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Still.App.Views.ContactsView">
+  <Grid ColumnDefinitions="1.4*,*">
+    <StackPanel Spacing="14">
+      <Grid ColumnDefinitions="*,Auto">
+        <StackPanel Spacing="2">
+          <TextBlock Text="{Binding SummaryText}" Classes="h3" />
+          <TextBlock Text="Menschen, die dir helfen, bei deinem Plan zu bleiben." Classes="dim" FontSize="10" />
+        </StackPanel>
+        <Button Grid.Column="1"
+                Classes="primary"
+                Content="+ Neuer Kontakt"
+                Command="{Binding NewContactCommand}" />
+      </Grid>
+
+      <Border Classes="hero" Padding="18">
+        <Grid ColumnDefinitions="Auto,*">
+          <Border Width="38" Height="38" Background="{StaticResource AccentSoftBrush}" CornerRadius="11">
+            <Path Data="M12 3l8 4v6c0 5-4 8-8 10c-4-2-8-5-8-10V6zM9 12l2 2l4-4"
+                  Stroke="{StaticResource AccentBrush}"
+                  StrokeThickness="1.6"
+                  Stretch="Uniform"
+                  Width="18"
+                  Height="18"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center" />
+          </Border>
+          <StackPanel Grid.Column="1" Margin="12,0,0,0" Spacing="3" VerticalAlignment="Center">
+            <TextBlock Text="Freigaben bleiben menschlich" Classes="h3" FontSize="13" />
+            <TextBlock Text="Für Änderungen oder eine vorzeitige Freigabe brauchst du den Code einer Freigabeperson. Der Code wird nur als Hash gespeichert – auch Still kann ihn nicht lesen."
+                       Classes="muted"
+                       FontSize="10.5"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <TextBlock Text="Noch keine Kontakte. Eine Person mit Freigabecode reicht."
+                 Classes="muted"
+                 FontSize="11"
+                 TextWrapping="Wrap"
+                 IsVisible="{Binding Empty}" />
+
+      <ItemsControl ItemsSource="{Binding Contacts}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="card" Padding="17" Margin="0,0,0,9">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Border Width="44"
+                        Height="44"
+                        CornerRadius="22"
+                        Background="{StaticResource AccentSoftBrush}">
+                  <TextBlock Text="{Binding Initial}"
+                             FontSize="17"
+                             FontWeight="SemiBold"
+                             Foreground="{StaticResource AccentBrush}"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="12,0,0,0" Spacing="3" VerticalAlignment="Center">
+                  <StackPanel Orientation="Horizontal" Spacing="7">
+                    <TextBlock Text="{Binding Name}" FontSize="13.5" FontWeight="SemiBold" />
+                    <Border Classes="badge"
+                            Classes.ok="{Binding IsApprover}">
+                      <TextBlock Text="{Binding RoleText}"
+                                 FontSize="8.5"
+                                 Classes="muted"
+                                 Classes.accent="{Binding IsApprover}" />
+                    </Border>
+                  </StackPanel>
+                  <TextBlock Text="{Binding ContactLine}" FontSize="10" Classes="muted" />
+                  <TextBlock Text="{Binding CodeText}" FontSize="9" Classes="dim" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <Button Classes="ghost small" Content="Freigabe" Command="{Binding MailCommand}" />
+                  <Button Classes="subtle small" Content="Bearbeiten" Command="{Binding EditCommand}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+
+    <Grid Grid.Column="1" Margin="16,0,0,0">
+      <Border Classes="card" IsVisible="{Binding !Editor.IsOpen}">
+        <StackPanel Spacing="9" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20,60">
+          <TextBlock Text="Gemeinsam statt allein" Classes="h3" TextAlignment="Center" />
+          <TextBlock Text="Wähle links eine Person aus oder lege einen neuen Kontakt an. Freigabepersonen erhalten einen Code, den nur ihr kennt."
+                     Classes="muted"
+                     FontSize="11"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxWidth="330" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card" IsVisible="{Binding Editor.IsOpen}" VerticalAlignment="Top">
+        <StackPanel Spacing="12">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding Editor.EditorTitle}" Classes="h3" />
+            <Button Grid.Column="1" Classes="subtle small" Content="×" Command="{Binding Editor.CancelCommand}" />
+          </Grid>
+
+          <StackPanel Spacing="5">
+            <TextBlock Text="Name" Classes="label" />
+            <TextBox Text="{Binding Editor.Name, Mode=TwoWay}" Watermark="z. B. Anna" />
+          </StackPanel>
+
+          <StackPanel Spacing="5">
+            <TextBlock Text="E-Mail" Classes="label" />
+            <TextBox Text="{Binding Editor.Email, Mode=TwoWay}" Watermark="name@example.com" />
+          </StackPanel>
+
+          <StackPanel Spacing="5">
+            <TextBlock Text="Telefon (optional)" Classes="label" />
+            <TextBox Text="{Binding Editor.Phone, Mode=TwoWay}" Watermark="+49 …" />
+          </StackPanel>
+
+          <StackPanel Spacing="5">
+            <TextBlock Text="Notiz (optional)" Classes="label" />
+            <TextBox Text="{Binding Editor.Note, Mode=TwoWay}"
+                     Classes="multiline"
+                     Height="70"
+                     Watermark="Wie kennt ihr euch?" />
+          </StackPanel>
+
+          <ToggleSwitch IsChecked="{Binding Editor.IsApprover, Mode=TwoWay}"
+                        OnContent="Darf Freigaben erteilen"
+                        OffContent="Nur Kontakt" />
+
+          <StackPanel Spacing="5" IsVisible="{Binding Editor.IsApprover}">
+            <TextBlock Text="Freigabecode" Classes="label" />
+            <TextBox Text="{Binding Editor.Code, Mode=TwoWay}"
+                     PasswordChar="●"
+                     Watermark="Neuen Code setzen" />
+            <TextBlock Text="{Binding Editor.CodeHint}"
+                       Classes="dim"
+                       FontSize="9.5"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+
+          <TextBlock Text="{Binding Editor.ErrorText}"
+                     Foreground="{StaticResource DangerBrush}"
+                     FontSize="10.5"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding Editor.HasError}" />
+
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Classes="danger"
+                    Content="Entfernen"
+                    Command="{Binding Editor.DeleteCommand}"
+                    IsVisible="{Binding Editor.CanDelete}" />
+            <Button Classes="ghost" Content="Abbrechen" Command="{Binding Editor.CancelCommand}" />
+            <Button Classes="primary" Content="Speichern" Command="{Binding Editor.SaveCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>

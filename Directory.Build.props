@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Version>0.1.0</Version>
+    <Product>Still</Product>
+    <Company>Still</Company>
+    <NeutralLanguage>de-DE</NeutralLanguage>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+</Project>

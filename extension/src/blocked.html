@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Website gesperrt · Still</title>
+  <link rel="stylesheet" href="blocked.css">
+</head>
+<body>
+  <main class="stage">
+    <section class="card" aria-labelledby="subject">
+      <header class="head">
+        <div class="shield" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round">
+            <path d="M12 2l8 4v6c0 5-4 8-8 10c-4-2-8-5-8-10V6z"/>
+          </svg>
+        </div>
+        <div class="titles">
+          <p class="kind" id="kind">Website gesperrt</p>
+          <h1 id="subject">Website</h1>
+        </div>
+        <button class="close" id="close" type="button" aria-label="Tab schließen">×</button>
+      </header>
+
+      <div class="copy">
+        <p class="rules" id="rules">Eine Regel greift gerade.</p>
+        <p class="explanation" id="explanation"></p>
+        <p class="notice" id="notice" role="status" aria-live="polite" hidden></p>
+      </div>
+
+      <footer class="actions">
+        <button class="ghost contact" id="contact" type="button">Kontaktpersonen kontaktieren</button>
+        <div class="action-row">
+          <button class="ghost" id="close-footer" type="button">Tab schließen</button>
+          <button class="primary" id="grace" type="button" hidden>+5 Minuten</button>
+        </div>
+      </footer>
+    </section>
+    <p class="foot">Still · Fokus, der bleibt</p>
+  </main>
+  <script src="blocked.js"></script>
+</body>
+</html>

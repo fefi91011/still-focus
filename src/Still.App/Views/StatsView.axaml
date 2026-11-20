@@ -1,0 +1,184 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Still.App.Controls"
+             x:Class="Still.App.Views.StatsView">
+  <StackPanel Spacing="16">
+    <Grid ColumnDefinitions="*,*,*,*,*">
+      <Border Classes="tile" Margin="0,0,5,0">
+        <StackPanel Spacing="3">
+          <TextBlock Text="FOKUS HEUTE" Classes="label" />
+          <TextBlock Text="{Binding FocusToday}" FontSize="22" FontWeight="Bold" />
+          <TextBlock Text="konzentrierte Zeit" Classes="dim" FontSize="9.5" />
+        </StackPanel>
+      </Border>
+      <Border Grid.Column="1" Classes="tile" Margin="5,0,5,0">
+        <StackPanel Spacing="3">
+          <TextBlock Text="BILDSCHIRMZEIT" Classes="label" />
+          <TextBlock Text="{Binding ScreenTimeToday}" FontSize="22" FontWeight="Bold" />
+          <TextBlock Text="alle Vordergrund-Apps" Classes="dim" FontSize="9.5" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+      <Border Grid.Column="2" Classes="tile" Margin="5,0,5,0">
+        <StackPanel Spacing="3">
+          <TextBlock Text="DIESE WOCHE" Classes="label" />
+          <TextBlock Text="{Binding FocusWeek}" FontSize="22" FontWeight="Bold" />
+          <TextBlock Text="in den letzten 7 Tagen" Classes="dim" FontSize="9.5" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+      <Border Grid.Column="3" Classes="tile" Margin="5,0,5,0">
+        <StackPanel Spacing="3">
+          <TextBlock Text="Ø PRO TAG" Classes="label" />
+          <TextBlock Text="{Binding FocusAverage}" FontSize="22" FontWeight="Bold" />
+          <TextBlock Text="Durchschnitt" Classes="dim" FontSize="9.5" />
+        </StackPanel>
+      </Border>
+      <Border Grid.Column="4" Classes="tile" Margin="5,0,0,0">
+        <StackPanel Spacing="3">
+          <TextBlock Text="SPERREN HEUTE" Classes="label" />
+          <TextBlock Text="{Binding BlockedToday}" FontSize="22" FontWeight="Bold" />
+          <TextBlock Text="Grenzen haben gehalten" Classes="dim" FontSize="9.5" TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+    </Grid>
+
+    <Border Classes="card">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock Text="App-Zeit" Classes="h3" />
+            <TextBlock Text="Welche App wie lange im Vordergrund war – unabhängig von Regeln und Limits. Browser werden pro Prozess zusammengefasst."
+                       Classes="dim"
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       MaxWidth="700"
+                       HorizontalAlignment="Left" />
+          </StackPanel>
+          <Border Grid.Column="1" Classes="chip" VerticalAlignment="Center">
+            <TextBlock Text="ALLE APPS" Classes="label" FontSize="8.5" />
+          </Border>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,*">
+          <controls:AppUsageSection DataContext="{Binding AppsToday}" Margin="0,0,20,0" />
+          <controls:AppUsageSection Grid.Column="1" DataContext="{Binding AppsWeek}" Margin="20,0,0,0" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <Grid ColumnDefinitions="1.6*,*">
+      <StackPanel Spacing="16">
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="2">
+                <TextBlock Text="Fokusverlauf" Classes="h3" />
+                <TextBlock Text="Letzte sieben Tage" Classes="dim" FontSize="10" />
+              </StackPanel>
+              <TextBlock Grid.Column="1"
+                         Text="{Binding Streak}"
+                         Classes="accent"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Center" />
+            </Grid>
+            <controls:BarChart Height="190" Bars="{Binding FocusBars}" />
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="11">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Budget heute" Classes="h3" />
+              <TextBlock Text="Nutzung pro Regel, inklusive Bonus und Nachfrist." Classes="dim" FontSize="10" />
+            </StackPanel>
+
+            <Border Classes="panel" IsVisible="{Binding HasUsage}">
+              <TextBlock Text="{Binding UsedTodaySummary}" FontSize="10.5" Classes="muted" TextWrapping="Wrap" />
+            </Border>
+
+            <TextBlock Text="Lege eine Regel mit Tageslimit an, um hier Budgets zu sehen."
+                       Classes="muted"
+                       FontSize="10.5"
+                       IsVisible="{Binding !HasUsage}"
+                       TextWrapping="Wrap" />
+
+            <ItemsControl ItemsSource="{Binding UsageRows}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="panel" Margin="0,0,0,7">
+                    <StackPanel Spacing="6">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Orientation="Horizontal" Spacing="7">
+                          <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" />
+                          <Border Classes="badge" Background="{StaticResource DangerSoftBrush}" IsVisible="{Binding IsBlocked}">
+                            <TextBlock Text="GESPERRT" FontSize="8.5" Foreground="{StaticResource DangerBrush}" />
+                          </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                          <TextBlock Text="{Binding UsedText}" FontSize="10.5" FontWeight="SemiBold" />
+                          <TextBlock Text="{Binding LimitText}" FontSize="10" Classes="dim" />
+                        </StackPanel>
+                      </Grid>
+                      <controls:MeterBar Value="{Binding Fraction}" Fill="{Binding BarBrush}" />
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+
+      <StackPanel Grid.Column="1" Margin="16,0,0,0" Spacing="16">
+        <Border Classes="card">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Verantwortung" Classes="h3" />
+            <Grid ColumnDefinitions="*,*">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{Binding TasksToday}" FontSize="26" FontWeight="Bold" />
+                <TextBlock Text="Aufgaben erledigt" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+              <StackPanel Grid.Column="1" Spacing="2">
+                <TextBlock Text="{Binding RewardToday}" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="Zeit zurückverdient" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+            </Grid>
+            <Border Height="1" Background="#222933" />
+            <StackPanel Spacing="2">
+              <TextBlock Text="{Binding Streak}" FontSize="17" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" />
+              <TextBlock Text="Tage in Folge mit Fokuszeit" Classes="dim" FontSize="9.5" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <TextBlock Text="Heute gutgeschrieben" Classes="h3" />
+            <TextBlock Text="Noch keine Aufgabe erledigt."
+                       Classes="muted"
+                       FontSize="10.5"
+                       IsVisible="{Binding !HasCompletions}"
+                       TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{Binding Completions}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Border Classes="panel" Margin="0,0,0,7">
+                    <StackPanel Spacing="4">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Title}" FontSize="11.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Grid.Column="1" Text="{Binding MinutesText}" FontSize="10" Foreground="{StaticResource AccentBrush}" />
+                      </Grid>
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Reflection}" FontSize="9.5" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding HasReflection}" />
+                        <TextBlock Grid.Column="1" Text="{Binding TimeText}" FontSize="9" Classes="dim" />
+                      </Grid>
+                    </StackPanel>
+                  </Border>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Grid>
+  </StackPanel>
+</UserControl>

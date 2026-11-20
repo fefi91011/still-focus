@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Still.App.Controls"
+             x:Class="Still.App.Controls.AppUsageSection">
+  <StackPanel Spacing="8">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="{Binding Title}" Classes="label" />
+      <TextBlock Grid.Column="1"
+                 Text="{Binding TotalText}"
+                 FontSize="10.5"
+                 Classes="muted"
+                 VerticalAlignment="Center" />
+    </Grid>
+
+    <TextBlock Text="{Binding EmptyText}"
+               Classes="muted"
+               FontSize="10"
+               TextWrapping="Wrap"
+               IsVisible="{Binding IsEmpty}" />
+
+    <ItemsControl ItemsSource="{Binding Rows}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <StackPanel Spacing="3" Margin="0,0,0,8">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding Name}"
+                         FontSize="11"
+                         TextTrimming="CharacterEllipsis" />
+              <TextBlock Grid.Column="1"
+                         Text="{Binding DurationText}"
+                         FontSize="10.5"
+                         Classes="muted" />
+            </Grid>
+            <controls:MeterBar Value="{Binding Fraction}"
+                               Fill="{Binding BarBrush}"
+                               Height="3"
+                               Thickness="3" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock Text="{Binding MoreText}"
+               Classes="dim"
+               FontSize="9"
+               IsVisible="{Binding HasMore}" />
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,206 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Still.App.Views.SettingsView">
+  <Grid ColumnDefinitions="*,*" Margin="0,0,22,0">
+    <StackPanel Spacing="16">
+      <Border Classes="card">
+        <StackPanel Spacing="11">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Systemstatus" Classes="h3" />
+              <TextBlock Text="{Binding PlatformStatus}" Classes="dim" FontSize="10" />
+            </StackPanel>
+            <TextBlock Grid.Column="1" Text="{Binding VersionText}" Classes="label" VerticalAlignment="Center" />
+          </Grid>
+
+          <Border Height="1" Background="#222933" />
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Administratorrechte" FontSize="11.5" />
+              <TextBlock Text="{Binding AdminStatus}" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <Border Grid.Column="1" Classes="badge" Classes.ok="{Binding AdminOk}" Classes.danger="{Binding !AdminOk}">
+              <TextBlock Text="{Binding AdminStatus}" FontSize="8.5" Classes="accent" Classes.danger="{Binding !AdminOk}" />
+            </Border>
+          </Grid>
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Website-Sperre" FontSize="11.5" />
+              <TextBlock Text="Hosts-Datei und DoH-Endpunkte" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <Border Grid.Column="1" Classes="badge" Classes.ok="{Binding WebsiteOk}" Classes.danger="{Binding !WebsiteOk}">
+              <TextBlock Text="{Binding WebsiteStatus}" FontSize="8.5" Classes="accent" Classes.danger="{Binding !WebsiteOk}" />
+            </Border>
+          </Grid>
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Programm-Sperre" FontSize="11.5" />
+              <TextBlock Text="Erkennt laufende Prozesse" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <Border Grid.Column="1" Classes="badge" Classes.ok="{Binding ProcessOk}" Classes.danger="{Binding !ProcessOk}">
+              <TextBlock Text="{Binding ProcessStatus}" FontSize="8.5" Classes="accent" Classes.danger="{Binding !ProcessOk}" />
+            </Border>
+          </Grid>
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Autostart" FontSize="11.5" />
+              <TextBlock Text="Geplante Aufgabe für App und Watchdog" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <Border Grid.Column="1" Classes="badge" Classes.ok="{Binding StartupOk}">
+              <TextBlock Text="{Binding StartupStatus}" FontSize="8.5" Classes="accent" />
+            </Border>
+          </Grid>
+
+          <StackPanel Orientation="Horizontal" Spacing="7" Margin="0,3,0,0">
+            <Button Classes="ghost small"
+                    Content="Autostart einrichten"
+                    Command="{Binding InstallStartupCommand}"
+                    IsVisible="{Binding CanInstallStartup}" />
+            <Button Classes="ghost small"
+                    Content="Autostart entfernen"
+                    Command="{Binding RemoveStartupCommand}"
+                    IsVisible="{Binding CanRemoveStartup}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="9">
+          <TextBlock Text="Daten" Classes="h3" />
+          <TextBlock Text="Alles liegt lokal auf diesem Rechner. Kein Konto, kein Server, keine Telemetrie."
+                     Classes="muted"
+                     FontSize="10.5"
+                     TextWrapping="Wrap" />
+          <Border Classes="panel">
+            <TextBlock Text="{Binding DataPath}"
+                       FontSize="10"
+                       Classes="muted"
+                       TextWrapping="Wrap" />
+          </Border>
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Button Classes="ghost small" Content="Ordner öffnen" Command="{Binding OpenDataFolderCommand}" />
+            <Button Classes="danger small" Content="Alles zurücksetzen" Command="{Binding ResetCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="hero" Padding="18" IsVisible="{Binding IsDemo}">
+        <StackPanel Spacing="4">
+          <TextBlock Text="DEMO-MODUS" Classes="label" Foreground="{StaticResource AccentBrush}" />
+          <TextBlock Text="Diese Sitzung simuliert Sperren und speichert nichts dauerhaft. Auf Windows werden Hosts-Datei, Prozesse und Autostart tatsächlich verändert."
+                     Classes="muted"
+                     FontSize="10.5"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+
+    <StackPanel Grid.Column="1" Margin="12,0,0,0" Spacing="16">
+      <Border Classes="card">
+        <StackPanel Spacing="11">
+          <TextBlock Text="Verhalten" Classes="h3" />
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Im Infobereich bleiben" FontSize="11.5" />
+              <TextBlock Text="Schließen beendet die App nicht" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding CloseToTray, Mode=TwoWay}" VerticalAlignment="Center" />
+          </Grid>
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Minimiert starten" FontSize="11.5" />
+              <TextBlock Text="Nur das Tray-Symbol erscheint" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding StartMinimized, Mode=TwoWay}" VerticalAlignment="Center" />
+          </Grid>
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Blockierfenster anzeigen" FontSize="11.5" />
+              <TextBlock Text="Hinweis, wenn ein Ziel gesperrt ist" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding ShowOverlay, Mode=TwoWay}" VerticalAlignment="Center" />
+          </Grid>
+
+          <Grid ColumnDefinitions="*,*,*" Margin="0,2,0,0">
+            <StackPanel Spacing="4">
+              <TextBlock Text="Standard-Nachfrist" Classes="label" />
+              <TextBox Text="{Binding DefaultGrace, Mode=TwoWay}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="7,0,0,0" Spacing="4">
+              <TextBlock Text="Max. pro Tag" Classes="label" />
+              <TextBox Text="{Binding DefaultMaxGrace, Mode=TwoWay}" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Margin="7,0,0,0" Spacing="4">
+              <TextBlock Text="Warnung ab %" Classes="label" />
+              <TextBox Text="{Binding WarningThreshold, Mode=TwoWay}" />
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Freigaben" Classes="h3" />
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Änderungen schützen" FontSize="11.5" />
+              <TextBlock Text="Code einer Freigabeperson verlangen" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding RequireApprovalForEdits, Mode=TwoWay}" VerticalAlignment="Center" />
+          </Grid>
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Vorzeitige Freigabe" FontSize="11.5" />
+              <TextBlock Text="Cold Turkey nur mit Code beenden" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding RequireApprovalForUnlock, Mode=TwoWay}" VerticalAlignment="Center" />
+          </Grid>
+          <TextBlock Text="Ohne Kontakt mit Freigabecode bleiben diese Schalter wirkungslos."
+                     Classes="dim"
+                     FontSize="9.5"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <TextBlock Text="Websites" Classes="h3" />
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="DoH-Endpunkte mitsperren" FontSize="11.5" />
+              <TextBlock Text="Verhindert Umgehung per DNS-over-HTTPS" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1" IsChecked="{Binding BlockDoh, Mode=TwoWay}" VerticalAlignment="Center" />
+          </Grid>
+          <StackPanel Spacing="4">
+            <TextBlock Text="Browser-Prozesse" Classes="label" />
+            <TextBox Text="{Binding BrowserProcesses, Mode=TwoWay}"
+                     Classes="multiline"
+                     Height="62"
+                     Watermark="chrome, msedge, firefox" />
+            <TextBlock Text="Kommagetrennt. Diese Prozesse gelten für Cold Turkey als Browser."
+                       Classes="dim"
+                       FontSize="9" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Button Classes="primary"
+              Content="Einstellungen speichern"
+              Command="{Binding SaveCommand}"
+              HorizontalAlignment="Stretch" />
+
+      <TextBlock Text="{Binding VersionText}"
+                 Classes="dim"
+                 FontSize="9.5"
+                 HorizontalAlignment="Center" />
+    </StackPanel>
+  </Grid>
+</UserControl>

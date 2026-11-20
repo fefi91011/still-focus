@@ -1,0 +1,273 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Still.App.Views.MainWindow"
+        Title="Still"
+        Width="1320"
+        Height="860"
+        MinWidth="1120"
+        MinHeight="720"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource AppBgBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="46">
+  <Grid RowDefinitions="46,*">
+    <Border Grid.Row="0"
+            Background="#090B0E"
+            BorderBrush="{StaticResource BorderSoftBrush}"
+            BorderThickness="0,0,0,1"
+            PointerPressed="OnTitleBarPressed">
+      <Grid ColumnDefinitions="Auto,*,Auto" Margin="14,0,8,0">
+        <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+          <Image Width="20" Height="20" Source="avares://Still.App/Assets/still.png" />
+          <TextBlock Text="Still" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" />
+          <Border Classes="badge" Padding="7,2" Margin="3,0,0,0">
+            <TextBlock Text="0.1" FontSize="8.5" Foreground="{StaticResource DimBrush}" />
+          </Border>
+          <Border Classes="badge" Background="{StaticResource AccentSoftBrush}" IsVisible="{Binding IsDemo}" Margin="2,0,0,0">
+            <TextBlock Text="DEMO" FontSize="8.5" Foreground="{StaticResource AccentBrush}" />
+          </Border>
+        </StackPanel>
+
+        <TextBlock Grid.Column="1"
+                   Text="{Binding Title}"
+                   FontSize="11.5"
+                   Foreground="{StaticResource DimBrush}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="1" VerticalAlignment="Center">
+          <Button Classes="window" Click="OnMinimize" ToolTip.Tip="Minimieren">
+            <TextBlock Text="–" FontSize="14" />
+          </Button>
+          <Button Classes="window" Click="OnMaximize" ToolTip.Tip="Maximieren">
+            <TextBlock Text="□" FontSize="11" />
+          </Button>
+          <Button Classes="window close" Click="OnClose" ToolTip.Tip="In den Infobereich">
+            <TextBlock Text="×" FontSize="15" />
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Grid Grid.Row="1" ColumnDefinitions="228,*">
+      <Border Background="#0C0F13"
+              BorderBrush="{StaticResource BorderSoftBrush}"
+              BorderThickness="0,0,1,0">
+        <Grid RowDefinitions="Auto,*,Auto" Margin="12,18,12,14">
+          <StackPanel Spacing="12">
+            <StackPanel Spacing="3" Margin="6,0,0,0">
+              <TextBlock Text="{Binding DateText}" Classes="label" />
+              <TextBlock Text="Dein ruhiger Rhythmus" FontSize="11" Classes="muted" />
+            </StackPanel>
+
+            <Border Classes="statusCard">
+              <StackPanel Spacing="5">
+                <StackPanel Orientation="Horizontal" Spacing="7">
+                  <Ellipse Width="7" Height="7" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding StatusText}" FontSize="11.5" FontWeight="SemiBold" />
+                </StackPanel>
+                <TextBlock Text="{Binding StatusDetail}"
+                           Classes="muted"
+                           FontSize="10"
+                           TextWrapping="Wrap"
+                           Margin="14,0,0,0" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <ScrollViewer Grid.Row="1" Margin="0,18,0,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+              <TextBlock Text="TÄGLICH" Classes="label" Margin="10,0,0,7" />
+              <ItemsControl ItemsSource="{Binding NavDaily}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button Classes="nav"
+                            Classes.active="{Binding IsActive}"
+                            Command="{Binding Command}">
+                      <Grid ColumnDefinitions="18,*">
+                        <Path Data="{Binding Icon}"
+                              Stroke="{Binding $parent[Button].Foreground}"
+                              StrokeThickness="1.6"
+                              Stretch="Uniform"
+                              Width="16"
+                              Height="16"
+                              VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Label}"
+                                   Margin="11,0,0,0"
+                                   VerticalAlignment="Center" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <TextBlock Text="PLANUNG" Classes="label" Margin="10,20,0,7" />
+              <ItemsControl ItemsSource="{Binding NavPlanning}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                    <Button Classes="nav"
+                            Classes.active="{Binding IsActive}"
+                            Command="{Binding Command}">
+                      <Grid ColumnDefinitions="18,*">
+                        <Path Data="{Binding Icon}"
+                              Stroke="{Binding $parent[Button].Foreground}"
+                              StrokeThickness="1.6"
+                              Stretch="Uniform"
+                              Width="16"
+                              Height="16"
+                              VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding Label}"
+                                   Margin="11,0,0,0"
+                                   VerticalAlignment="Center" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+
+          <StackPanel Grid.Row="2" Spacing="8">
+            <Border Classes="statusCard">
+              <StackPanel Spacing="5">
+                <TextBlock Text="NÄCHSTER SCHRITT" Classes="label" />
+                <TextBlock Text="{Binding NextBlockText}"
+                           FontSize="10.5"
+                           Classes="muted"
+                           TextWrapping="Wrap" />
+              </StackPanel>
+            </Border>
+
+            <Button Classes="nav"
+                    Classes.active="{Binding SettingsNav.IsActive}"
+                    Command="{Binding SettingsNav.Command}">
+              <Grid ColumnDefinitions="18,*">
+                <Path Data="{Binding SettingsNav.Icon}"
+                      Stroke="{Binding $parent[Button].Foreground}"
+                      StrokeThickness="1.6"
+                      Stretch="Uniform"
+                      Width="16"
+                      Height="16"
+                      VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1"
+                           Text="Einstellungen"
+                           Margin="11,0,0,0"
+                           VerticalAlignment="Center" />
+              </Grid>
+            </Button>
+
+            <StackPanel Orientation="Horizontal" Spacing="6" Margin="8,2,0,0">
+              <Ellipse Width="5" Height="5" Fill="{StaticResource AccentBrush}" VerticalAlignment="Center" />
+              <TextBlock Text="Alles bleibt lokal" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Grid Grid.Column="1" RowDefinitions="Auto,*">
+        <Grid Margin="32,22,32,14" ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Title}" FontSize="25" FontWeight="Bold" />
+            <TextBlock Text="{Binding Subtitle}" FontSize="11.5" Classes="muted" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="7" VerticalAlignment="Center">
+            <Border Classes="clockPill">
+              <TextBlock Text="{Binding ClockText}" FontSize="11.5" FontWeight="SemiBold" />
+            </Border>
+            <Border Classes="clockPill">
+              <TextBlock Text="{Binding NextBlockText}" FontSize="10.5" Classes="muted" />
+            </Border>
+          </StackPanel>
+        </Grid>
+
+        <ScrollViewer Grid.Row="1"
+                      Margin="32,0,32,24"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+          <ContentControl Content="{Binding CurrentPage}" HorizontalContentAlignment="Stretch" />
+        </ScrollViewer>
+      </Grid>
+    </Grid>
+
+    <Border Grid.RowSpan="2"
+            Classes="toast"
+            Classes.error="{Binding ToastIsError}"
+            IsVisible="{Binding IsToastVisible}"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Margin="20"
+            MaxWidth="560"
+            BoxShadow="0 14 34 0 #99000000">
+      <TextBlock Text="{Binding ToastText}" TextWrapping="Wrap" FontSize="11.5" />
+    </Border>
+
+    <Grid Grid.RowSpan="2"
+          IsVisible="{Binding Dialog.IsOpen}"
+          Background="#C905070A">
+      <Border Width="470"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="#12171E"
+              BorderBrush="#303A47"
+              BorderThickness="1"
+              CornerRadius="18"
+              Padding="26"
+              BoxShadow="0 30 80 0 #AA000000">
+        <StackPanel Spacing="14">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding Dialog.Title}" Classes="h2" />
+            <Button Grid.Column="1"
+                    Classes="subtle small"
+                    Content="×"
+                    Command="{Binding Dialog.CancelCommand}" />
+          </Grid>
+
+          <TextBlock Text="{Binding Dialog.Body}"
+                     Classes="muted"
+                     FontSize="12"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding Dialog.HasBody}" />
+
+          <StackPanel Spacing="7" IsVisible="{Binding Dialog.ShowInput}">
+            <TextBlock Text="{Binding Dialog.InputLabel}" Classes="label" />
+            <TextBox Text="{Binding Dialog.Input, Mode=TwoWay}"
+                     Watermark="{Binding Dialog.InputPlaceholder}"
+                     IsVisible="{Binding Dialog.ShowPlain}" />
+            <TextBox Text="{Binding Dialog.Input, Mode=TwoWay}"
+                     PasswordChar="●"
+                     Watermark="{Binding Dialog.InputPlaceholder}"
+                     IsVisible="{Binding Dialog.ShowPassword}" />
+            <TextBox Text="{Binding Dialog.Input, Mode=TwoWay}"
+                     Classes="multiline"
+                     Watermark="{Binding Dialog.InputPlaceholder}"
+                     IsVisible="{Binding Dialog.ShowMultiline}" />
+            <TextBlock Text="{Binding Dialog.Error}"
+                       Foreground="{StaticResource DangerBrush}"
+                       FontSize="10.5"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding Dialog.HasError}" />
+            <TextBlock Text="{Binding Dialog.Hint}"
+                       Classes="dim"
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding Dialog.HasHint}" />
+          </StackPanel>
+
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Classes="ghost"
+                    Content="{Binding Dialog.CancelText}"
+                    Command="{Binding Dialog.CancelCommand}"
+                    IsVisible="{Binding Dialog.ShowCancel}" />
+            <Button Classes="primary"
+                    Content="{Binding Dialog.ConfirmText}"
+                    Command="{Binding Dialog.ConfirmCommand}" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

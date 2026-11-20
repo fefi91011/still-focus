@@ -1,0 +1,302 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Still.App.Controls"
+             x:Class="Still.App.Views.TodayView">
+  <StackPanel Spacing="16">
+    <Border Classes="hero">
+      <Grid ColumnDefinitions="*,232">
+        <StackPanel Spacing="8">
+          <TextBlock Text="{Binding Greeting}"
+                     Classes="label"
+                     Foreground="{StaticResource AccentBrush}" />
+          <TextBlock Text="{Binding HeroStatus}" Classes="h1" />
+          <TextBlock Text="{Binding HeroSubline}"
+                     Classes="muted"
+                     FontSize="12.5"
+                     TextWrapping="Wrap"
+                     MaxWidth="600"
+                     HorizontalAlignment="Left" />
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+            <Button Classes="primary" Content="Fokus starten" Command="{Binding OpenFocusCommand}" />
+            <Button Classes="ghost" Content="Regeln ansehen" Command="{Binding OpenRulesCommand}" />
+          </StackPanel>
+        </StackPanel>
+
+        <Border Grid.Column="1"
+                Classes="tile"
+                Background="#0C1115"
+                VerticalAlignment="Center">
+          <StackPanel Spacing="10">
+            <TextBlock Text="HEUTE" Classes="label" />
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+              <StackPanel Spacing="1">
+                <TextBlock Text="{Binding FocusToday}" FontSize="22" FontWeight="Bold" />
+                <TextBlock Text="Fokus" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+              <StackPanel Grid.Column="1"
+                          Spacing="1"
+                          ToolTip.Tip="Zeit mit irgendeiner App im Vordergrund, während Still läuft. Details unter App-Zeit.">
+                <TextBlock Text="{Binding ScreenTimeToday}" FontSize="22" FontWeight="Bold" />
+                <TextBlock Text="Bildschirmzeit" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+              <StackPanel Grid.Row="1"
+                          Spacing="1"
+                          Margin="0,10,0,0"
+                          ToolTip.Tip="Summe der verbrauchten Zeit aller Regeln mit Tageslimit.">
+                <TextBlock Text="{Binding UsedToday}" FontSize="22" FontWeight="Bold" />
+                <TextBlock Text="Genutzt" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+              <StackPanel Grid.Row="1" Grid.Column="1" Spacing="1" Margin="0,10,0,0">
+                <TextBlock Text="{Binding BlocksToday}" FontSize="22" FontWeight="Bold" />
+                <TextBlock Text="Sperren" Classes="dim" FontSize="9.5" />
+              </StackPanel>
+            </Grid>
+            <Border Height="1" Background="#222933" />
+            <StackPanel Spacing="3">
+              <TextBlock Text="{Binding ActiveRulesText}" FontSize="10.5" Classes="muted" />
+              <TextBlock Text="{Binding NextBlockText}"
+                         FontSize="9.5"
+                         Classes="dim"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </Border>
+
+    <Border Classes="card">
+      <Grid ColumnDefinitions="1.1*,*">
+        <StackPanel Spacing="11">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Bildschirmzeit" Classes="h3" />
+              <TextBlock Text="Alle Vordergrund-Apps zusammen. Wird automatisch erfasst, solange Still läuft."
+                         Classes="dim"
+                         FontSize="10"
+                         TextWrapping="Wrap"
+                         MaxWidth="430" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Classes="subtle small"
+                    Content="Statistik"
+                    Command="{Binding OpenStatsCommand}" />
+          </Grid>
+
+          <StackPanel Orientation="Horizontal" Spacing="30">
+            <StackPanel Spacing="1">
+              <TextBlock Text="{Binding ScreenTimeToday}" FontSize="31" FontWeight="Bold" />
+              <TextBlock Text="HEUTE" Classes="label" />
+            </StackPanel>
+            <StackPanel Spacing="1" VerticalAlignment="Bottom">
+              <TextBlock Text="{Binding ScreenTimeAverage}" FontSize="18" FontWeight="SemiBold" />
+              <TextBlock Text="Ø PRO TAG" Classes="label" />
+            </StackPanel>
+            <StackPanel Spacing="1" VerticalAlignment="Bottom">
+              <TextBlock Text="{Binding ScreenTimeWeek}" FontSize="18" FontWeight="SemiBold" />
+              <TextBlock Text="LETZTE 7 TAGE" Classes="label" />
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="7" Margin="22,0,0,0">
+          <TextBlock Text="VERLAUF" Classes="label" />
+          <controls:BarChart Height="126" Bars="{Binding ScreenTimeBars}" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border Classes="card">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock Text="App-Zeit" Classes="h3" />
+            <TextBlock Text="Alle Vordergrund-Apps – auch ohne Regel oder Tageslimit. Wird lokal erfasst, solange Still läuft."
+                       Classes="dim"
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       MaxWidth="620"
+                       HorizontalAlignment="Left" />
+          </StackPanel>
+          <Button Grid.Column="1"
+                  Classes="subtle small"
+                  Content="Statistik"
+                  Command="{Binding OpenStatsCommand}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="*,*">
+          <controls:AppUsageSection DataContext="{Binding AppsToday}" Margin="0,0,20,0" />
+          <controls:AppUsageSection Grid.Column="1" DataContext="{Binding AppsWeek}" Margin="20,0,0,0" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <Grid ColumnDefinitions="1.4*,*">
+      <Border Classes="card" Margin="0,0,8,0">
+        <StackPanel Spacing="11">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="2">
+              <TextBlock Text="Regeln heute" Classes="h3" />
+              <TextBlock Text="{Binding ActiveRulesText}" Classes="dim" FontSize="10" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Classes="subtle small"
+                    Content="Verwalten"
+                    Command="{Binding OpenRulesCommand}" />
+          </Grid>
+
+          <TextBlock Text="Noch keine Regeln. Eine einzige reicht, um anzufangen."
+                     Classes="muted"
+                     FontSize="11"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding NoRules}" />
+
+          <ItemsControl ItemsSource="{Binding RuleCards}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Border Classes="panel" Margin="0,0,0,8">
+                  <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold" />
+                        <Border Classes="badge"
+                                Classes.danger="{Binding IsBlocked}"
+                                Classes.warning="{Binding IsWarning}">
+                          <TextBlock Text="{Binding StatusText}"
+                                     FontSize="9"
+                                     Classes="muted"
+                                     Classes.danger="{Binding IsBlocked}"
+                                     Classes.warning="{Binding IsWarning}" />
+                        </Border>
+                      </StackPanel>
+                      <TextBlock Text="{Binding TargetsText}"
+                                 FontSize="10.5"
+                                 Classes="muted"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding ScheduleText}"
+                                 FontSize="9.5"
+                                 Classes="dim"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Right"
+                                Spacing="5">
+                      <TextBlock Text="{Binding BudgetText}"
+                                 FontSize="10"
+                                 HorizontalAlignment="Right" />
+                      <Button Classes="ghost small"
+                              Content="{Binding GraceLabel}"
+                              Command="{Binding GraceCommand}"
+                              IsVisible="{Binding CanGrace}"
+                              HorizontalAlignment="Right" />
+                    </StackPanel>
+
+                    <controls:MeterBar Grid.Row="1"
+                                       Grid.ColumnSpan="2"
+                                       Value="{Binding Fraction}"
+                                       Fill="{Binding BarBrush}"
+                                       Margin="0,10,0,0" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="16">
+        <Border Classes="card">
+          <StackPanel Spacing="10">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="Aufgaben" Classes="h3" />
+              <Button Grid.Column="1"
+                      Classes="subtle small"
+                      Content="Alle"
+                      Command="{Binding OpenTasksCommand}" />
+            </Grid>
+
+            <TextBlock Text="Gerade keine Aufgaben. Erledige etwas und verdiene dir Zeit zurück."
+                       Classes="muted"
+                       FontSize="10.5"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding !HasTasks}" />
+
+            <ItemsControl ItemsSource="{Binding Tasks}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,9">
+                    <StackPanel Spacing="1">
+                      <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" />
+                      <TextBlock Text="{Binding DetailText}" FontSize="9.5" Classes="dim" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" HorizontalAlignment="Right" Spacing="2">
+                      <TextBlock Text="{Binding RewardText}"
+                                 FontSize="10.5"
+                                 Foreground="{StaticResource AccentBrush}"
+                                 HorizontalAlignment="Right" />
+                      <Button Classes="ghost small"
+                              Content="✓"
+                              Command="{Binding CompleteCommand}"
+                              IsEnabled="{Binding CanComplete}" />
+                    </StackPanel>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <Border Classes="card">
+          <StackPanel Spacing="9">
+            <TextBlock Text="Fokus diese Woche" Classes="h3" />
+            <controls:BarChart Height="148" Bars="{Binding WeekBars}" />
+            <TextBlock Text="{Binding WeekSummary}" Classes="dim" FontSize="9.5" />
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </Grid>
+
+    <Border Classes="card">
+      <StackPanel Spacing="10">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock Text="Ausnahmen" Classes="h3" />
+            <TextBlock Text="Was trotz Sperre erlaubt bleibt" Classes="dim" FontSize="10" />
+          </StackPanel>
+          <Button Grid.Column="1"
+                  Classes="subtle small"
+                  Content="Bearbeiten"
+                  Command="{Binding OpenRulesCommand}" />
+        </Grid>
+
+        <TextBlock Text="Keine Ausnahmen angelegt. Du kannst jederzeit eine Mittagspause oder ein Wochenende erlauben."
+                   Classes="muted"
+                   FontSize="10.5"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding !HasExceptions}" />
+
+        <ItemsControl ItemsSource="{Binding Exceptions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Classes="panel" Margin="0,0,0,7">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding TargetsText}" FontSize="10" Classes="muted" />
+                  </StackPanel>
+                  <Border Grid.Column="1"
+                          Classes="badge"
+                          Background="{StaticResource AccentSoftBrush}">
+                    <TextBlock Text="{Binding AvailabilityText}"
+                               FontSize="9"
+                               Foreground="{StaticResource AccentBrush}" />
+                  </Border>
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

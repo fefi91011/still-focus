@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Still.App.Services;
 using Still.Core.Engine;
 using Still.Core.Models;
 using Still.Core.Runtime;
@@ -44,6 +45,7 @@ public sealed class MainViewModel : ObservableObject
         Runtime = runtime;
         IsDemo = demoMode;
         Dialog = new DialogViewModel();
+        Update = new UpdateViewModel(runtime, AppInfo.Version);
 
         Today = new TodayViewModel(this);
         Rules = new RulesViewModel(this);
@@ -122,12 +124,14 @@ public sealed class MainViewModel : ObservableObject
 
         Navigate("today");
         Refresh();
+        _ = Update.CheckOnStartupAsync();
     }
 
     public StillRuntime Runtime { get; }
     public bool IsDemo { get; }
     public string DemoText => "Demo-Modus – Sperren werden simuliert. Nichts auf diesem System wird blockiert.";
-    public string VersionText => "0.1.0";
+    public string VersionText => AppInfo.Version;
+    public UpdateViewModel Update { get; }
 
     public TodayViewModel Today { get; }
     public RulesViewModel Rules { get; }
@@ -148,6 +152,11 @@ public sealed class MainViewModel : ObservableObject
     public ICommand OpenRulesCommand { get; }
     public ICommand OpenStatsCommand { get; }
     public ICommand OpenTasksCommand { get; }
+
+    /// <summary>Set by the host so pages can quit the app, e.g. before uninstalling.</summary>
+    public Action? ShutdownRequested { get; set; }
+
+    public void RequestShutdown() => ShutdownRequested?.Invoke();
 
     public object CurrentPage
     {

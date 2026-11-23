@@ -88,6 +88,30 @@
         </StackPanel>
       </Border>
 
+      <Border Classes="card">
+        <StackPanel Spacing="9">
+          <TextBlock Text="Deinstallation" Classes="h3" />
+          <TextBlock Text="Beendet Still, stellt die hosts-Datei wieder her, entfernt den Autostart und öffnet danach den Windows-Deinstaller."
+                     Classes="muted"
+                     FontSize="10.5"
+                     TextWrapping="Wrap" />
+          <Button Classes="danger"
+                  Content="Still deinstallieren"
+                  Command="{Binding UninstallCommand}"
+                  IsVisible="{Binding CanUninstall}"
+                  HorizontalAlignment="Left" />
+          <TextBlock Text="Nur verfügbar, wenn Still über den Installer installiert wurde."
+                     Classes="dim"
+                     FontSize="9.5"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding !CanUninstall}" />
+          <TextBlock Text="Regeln und Statistiken bleiben im Datenordner und können dort manuell gelöscht werden."
+                     Classes="dim"
+                     FontSize="9.5"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+      </Border>
+
       <Border Classes="hero" Padding="18" IsVisible="{Binding IsDemo}">
         <StackPanel Spacing="4">
           <TextBlock Text="DEMO-MODUS" Classes="label" Foreground="{StaticResource AccentBrush}" />
@@ -189,6 +213,53 @@
                        Classes="dim"
                        FontSize="9" />
           </StackPanel>
+        </StackPanel>
+      </Border>
+
+      <Border Classes="card">
+        <StackPanel Spacing="10">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Updates" Classes="h3" />
+              <TextBlock Text="{Binding Update.StatusText}"
+                         Classes="dim"
+                         FontSize="9.5"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="1"
+                    Classes="ghost small"
+                    Content="Jetzt prüfen"
+                    Command="{Binding Update.CheckCommand}"
+                    IsEnabled="{Binding !Update.IsChecking}"
+                    VerticalAlignment="Center" />
+          </Grid>
+
+          <TextBlock Text="{Binding Update.DetailText}"
+                     Classes="muted"
+                     FontSize="10"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding Update.HasDetail}" />
+
+          <Button Classes="primary small"
+                  Content="Update ansehen"
+                  Command="{Binding Update.OpenReleaseCommand}"
+                  IsVisible="{Binding Update.IsUpdateAvailable}"
+                  HorizontalAlignment="Left" />
+
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel Spacing="1">
+              <TextBlock Text="Beim Start prüfen" FontSize="11.5" />
+              <TextBlock Text="{Binding Update.LastCheckedText}" FontSize="9.5" Classes="dim" />
+            </StackPanel>
+            <ToggleSwitch Grid.Column="1"
+                          IsChecked="{Binding CheckForUpdates, Mode=TwoWay}"
+                          VerticalAlignment="Center" />
+          </Grid>
+
+          <TextBlock Text="Dabei wird nur die neueste Version von GitHub abgefragt. Es werden keine Daten über dich gesendet."
+                     Classes="dim"
+                     FontSize="9"
+                     TextWrapping="Wrap" />
         </StackPanel>
       </Border>
 

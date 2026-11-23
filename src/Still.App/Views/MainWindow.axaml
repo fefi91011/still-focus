@@ -167,8 +167,47 @@
         </Grid>
       </Border>
 
-      <Grid Grid.Column="1" RowDefinitions="Auto,*">
-        <Grid Margin="32,22,32,14" ColumnDefinitions="*,Auto">
+      <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*">
+        <Border Grid.Row="0"
+                IsVisible="{Binding Update.IsBannerVisible}"
+                Margin="32,14,32,0"
+                Background="{StaticResource AccentSoftBrush}"
+                BorderBrush="#3C533C"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="14,9">
+          <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+            <TextBlock Text="↑"
+                       Foreground="{StaticResource AccentBrush}"
+                       FontSize="14"
+                       FontWeight="Bold"
+                       VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="1" VerticalAlignment="Center">
+              <TextBlock Text="{Binding Update.BannerText}"
+                         FontSize="11.5"
+                         FontWeight="SemiBold"
+                         TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Update.DetailText}"
+                         FontSize="9.5"
+                         Classes="muted"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="2"
+                    Classes="primary small"
+                    Content="Update ansehen"
+                    Command="{Binding Update.OpenReleaseCommand}"
+                    VerticalAlignment="Center"
+                    Margin="10,0,0,0" />
+            <Button Grid.Column="3"
+                    Classes="subtle small"
+                    Content="×"
+                    Command="{Binding Update.DismissCommand}"
+                    VerticalAlignment="Center"
+                    Margin="4,0,0,0" />
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="32,18,32,14" ColumnDefinitions="*,Auto">
           <StackPanel Spacing="2" VerticalAlignment="Center">
             <TextBlock Text="{Binding Title}" FontSize="25" FontWeight="Bold" />
             <TextBlock Text="{Binding Subtitle}" FontSize="11.5" Classes="muted" />
@@ -184,7 +223,7 @@
           </StackPanel>
         </Grid>
 
-        <ScrollViewer Grid.Row="1"
+        <ScrollViewer Grid.Row="2"
                       Margin="32,0,32,24"
                       VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">

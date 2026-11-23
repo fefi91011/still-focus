@@ -14,6 +14,7 @@ public sealed class StillSettings
     public int DefaultMaxGraceUses { get; set; } = 2;
     public int WarningThresholdPercent { get; set; } = 80;
     public bool BlockDohWhenBlocking { get; set; } = true;
+    public bool CheckForUpdates { get; set; } = true;
     public List<string> BrowserProcesses { get; set; } =
     [
         "chrome", "msedge", "firefox", "brave", "opera", "vivaldi", "arc", "zen"

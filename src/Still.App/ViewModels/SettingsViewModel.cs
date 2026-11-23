@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Windows.Input;
+using Still.App.Services;
 using Still.Core.Models;
 
 namespace Still.App.ViewModels;
@@ -15,6 +16,7 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     private bool _requireApprovalForEdits;
     private bool _requireApprovalForUnlock;
     private bool _blockDoh = true;
+    private bool _checkForUpdates = true;
     private string _defaultGrace = "5";
     private string _defaultMaxGrace = "2";
     private string _warningThreshold = "80";
@@ -36,11 +38,13 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     public SettingsViewModel(MainViewModel main)
     {
         _main = main;
+        Update = main.Update;
         SaveCommand = new AsyncRelayCommand(SaveAsync, ex => main.ShowToast(ex.Message, error: true));
         InstallStartupCommand = new AsyncRelayCommand(InstallStartupAsync, ex => main.ShowToast(ex.Message, error: true));
         RemoveStartupCommand = new AsyncRelayCommand(RemoveStartupAsync, ex => main.ShowToast(ex.Message, error: true));
         OpenDataFolderCommand = new RelayCommand(() => _main.Runtime.RevealDataFolder());
         ResetCommand = new AsyncRelayCommand(ResetAsync, ex => main.ShowToast(ex.Message, error: true));
+        UninstallCommand = new AsyncRelayCommand(UninstallAsync, ex => main.ShowToast(ex.Message, error: true));
 
         LoadDraft();
         Refresh();
@@ -51,6 +55,8 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     public ICommand RemoveStartupCommand { get; }
     public ICommand OpenDataFolderCommand { get; }
     public ICommand ResetCommand { get; }
+    public ICommand UninstallCommand { get; }
+    public UpdateViewModel Update { get; }
 
     public bool CloseToTray
     {
@@ -86,6 +92,12 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     {
         get => _blockDoh;
         set => Set(ref _blockDoh, value);
+    }
+
+    public bool CheckForUpdates
+    {
+        get => _checkForUpdates;
+        set => Set(ref _checkForUpdates, value);
     }
 
     public string DefaultGrace
@@ -194,8 +206,16 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     public bool IsDemo
     {
         get => _isDemo;
-        private set => Set(ref _isDemo, value);
+        private set
+        {
+            if (Set(ref _isDemo, value))
+            {
+                Raise(nameof(CanUninstall));
+            }
+        }
     }
+
+    public bool CanUninstall => !IsDemo && AppUninstaller.Find() is not null;
 
     public string VersionText => $"Still {_main.VersionText}";
 
@@ -238,6 +258,7 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         RequireApprovalForEdits = settings.RequireApprovalForEdits;
         RequireApprovalForUnlock = settings.RequireApprovalForUnlock;
         BlockDoh = settings.BlockDohWhenBlocking;
+        CheckForUpdates = settings.CheckForUpdates;
         DefaultGrace = settings.DefaultGraceMinutes.ToString(German);
         DefaultMaxGrace = settings.DefaultMaxGraceUses.ToString(German);
         WarningThreshold = settings.WarningThresholdPercent.ToString(German);
@@ -296,6 +317,7 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
             DefaultMaxGraceUses = maxGrace,
             WarningThresholdPercent = threshold,
             BlockDohWhenBlocking = BlockDoh,
+            CheckForUpdates = CheckForUpdates,
             BrowserProcesses = browsers
         };
 
@@ -320,6 +342,49 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         var result = await Task.Run(() => _main.Runtime.RemoveStartup());
         _main.Notify(result);
         Refresh();
+    }
+
+    private async Task UninstallAsync()
+    {
+        if (_main.Runtime.IsLockdownActive)
+        {
+            _main.ShowToast("Cold Turkey läuft. Deinstallieren ist erst danach möglich.", error: true);
+            return;
+        }
+
+        var uninstaller = AppUninstaller.Find();
+        if (uninstaller is null)
+        {
+            _main.ShowToast(
+                "Kein Deinstallationsprogramm gefunden. Diese Version wurde nicht über den Installer installiert.",
+                error: true);
+            return;
+        }
+
+        var confirmed = await _main.ConfirmAsync(
+            "Still deinstallieren",
+            "Still wird beendet, die hosts-Datei wird wiederhergestellt und der Autostart entfernt. " +
+            "Danach öffnet sich der Windows-Deinstaller. " +
+            "Regeln und Statistiken bleiben im Datenordner und können dort manuell gelöscht werden.",
+            "Deinstallieren");
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        try
+        {
+            AppUninstaller.StartAfterExit(uninstaller);
+        }
+        catch (Exception ex)
+        {
+            _main.ShowToast("Deinstaller konnte nicht gestartet werden: " + ex.Message, error: true);
+            return;
+        }
+
+        _main.ShowToast("Still wird beendet, die Deinstallation startet in wenigen Sekunden.");
+        _main.RequestShutdown();
     }
 
     private async Task ResetAsync()

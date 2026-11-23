@@ -45,6 +45,8 @@ public sealed class AppHost
             DataContext = viewModel
         };
 
+        viewModel.ShutdownRequested = Shutdown;
+
         Window.Closing += OnClosing;
 
         _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };

@@ -50,5 +50,6 @@ Name: "{autodesktop}\Still"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{ap
 Filename: "{app}\{#MyAppExeName}"; Description: "Still jetzt starten"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
+Filename: "{app}\{#MyAppExeName}"; Parameters: "--cleanup"; Flags: runhidden waituntilterminated; RunOnceId: "CleanupSystemChanges"
 Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /F /TN ""Still Autostart"""; Flags: runhidden; RunOnceId: "RemoveStillAutostart"
 Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /F /TN ""Still Watchdog"""; Flags: runhidden; RunOnceId: "RemoveStillWatchdog"

@@ -6,7 +6,7 @@ Still blocks distracting apps and websites, ties schedules to daily limits, turn
 
 ![Still dashboard](docs/screenshots/01-heute.png)
 
-> **Status: 0.1.0.** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. The Windows installer has been installed and the full-screen overlay, contact action, and grace action have been exercised with real applications. Hosts-file blocking and scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
+> **Status: 0.1.1.** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. The Windows installer has been installed and the full-screen overlay, contact action, and grace action have been exercised with real applications. Hosts-file blocking and scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
 
 [Deutsche README](README.de.md)
 
@@ -98,7 +98,7 @@ dotnet run --project src/Still.App
 
 ## Install on Windows
 
-The ready-to-run installer is published in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.1.0.exe` and run it. The release notes include the SHA-256 checksum.
+The ready-to-run installer is published in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.1.1.exe` and run it. The release notes include the SHA-256 checksum.
 
 To build the installer locally:
 
@@ -106,7 +106,7 @@ To build the installer locally:
 powershell -ExecutionPolicy Bypass -File scripts/build-installer.ps1
 ```
 
-The result is `dist\installer\StillSetup-0.1.0.exe`. It is self-contained, so the .NET runtime does not need to be installed separately.
+The result is `dist\installer\StillSetup-0.1.1.exe`. It is self-contained, so the .NET runtime does not need to be installed separately.
 
 The installer creates Start menu and optional desktop shortcuts and starts Still after installation. Website blocking through the hosts file needs administrator rights; app blocking does not. The installer is currently unsigned, so Windows SmartScreen may warn. A code-signing certificate is required for frictionless public distribution.
 

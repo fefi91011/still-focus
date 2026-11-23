@@ -12,7 +12,7 @@ namespace Still.App.Services;
 public sealed class ExtensionBridge : IDisposable
 {
     public const int Port = 47821;
-    private const string Version = "0.1.0";
+
     private const int MaxBodyBytes = 16 * 1024;
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -143,7 +143,7 @@ public sealed class ExtensionBridge : IDisposable
                     {
                         ok = true,
                         app = "Still",
-                        version = Version,
+                        version = AppInfo.Version,
                         port = Port
                     });
                     return;

@@ -10,6 +10,14 @@ $staging = Join-Path $root "artifacts\installer-staging"
 $installerOutput = Join-Path $root "dist\installer"
 $iss = Join-Path $root "installer\Still.iss"
 
+$version = ([xml](Get-Content (Join-Path $root "Directory.Build.props"))).Project.PropertyGroup |
+    ForEach-Object { $_.Version } |
+    Where-Object { $_ } |
+    Select-Object -First 1
+if (-not $version) {
+    throw "Die Version aus Directory.Build.props konnte nicht gelesen werden."
+}
+
 $dotnet = Join-Path $env:USERPROFILE ".dotnet\dotnet.exe"
 if (-not (Test-Path $dotnet)) {
     $dotnet = (Get-Command dotnet -ErrorAction Stop).Source
@@ -63,7 +71,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup konnte den Installer nicht erstellen."
 }
 
-$setup = Join-Path $installerOutput "StillSetup-0.1.0.exe"
+$setup = Join-Path $installerOutput "StillSetup-$version.exe"
 if (-not (Test-Path $setup)) {
     throw "Der Installer wurde nicht gefunden: $setup"
 }

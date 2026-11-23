@@ -4,7 +4,7 @@
 
 Still ist eine leichte Fokus-App für Windows. Sie sperrt Programme und Websites, verbindet Zeitpläne mit Tageslimits, macht Aufgaben zu Zeitbelohnungen und lässt sich durch Menschen absichern, statt durch einen Account auf einem Server.
 
-> **Status 0.1.0.** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Die Windows-App wurde installiert; Overlay, Kontakt und Nachfrist wurden mit echten Anwendungen geprüft. Hosts-Schreibrechte und Scheduled Tasks wurden nicht mit Administratorrechten durchgespielt; die Hosts-Transformation und die Overlay-Logik sind durch Tests abgesichert.
+> **Status 0.1.1.** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Die Windows-App wurde installiert; Overlay, Kontakt und Nachfrist wurden mit echten Anwendungen geprüft. Hosts-Schreibrechte und Scheduled Tasks wurden nicht mit Administratorrechten durchgespielt; die Hosts-Transformation und die Overlay-Logik sind durch Tests abgesichert.
 
 ![Still – Heute](docs/screenshots/01-heute.png)
 
@@ -55,7 +55,7 @@ dotnet run --project src/Still.App
 
 ## Windows installieren (für Kunden)
 
-Der fertige Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.1.0.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes.
+Der fertige Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.1.1.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes.
 
 Installer lokal bauen:
 
@@ -63,7 +63,7 @@ Installer lokal bauen:
 powershell -ExecutionPolicy Bypass -File scripts/build-installer.ps1
 ```
 
-Ergebnis: `dist\installer\StillSetup-0.1.0.exe`. Der Kunde muss nur diese Datei doppelklicken und den Assistenten bestätigen. Die .NET-Runtime ist enthalten, es muss nichts zusätzlich installiert werden.
+Ergebnis: `dist\installer\StillSetup-0.1.1.exe`. Der Kunde muss nur diese Datei doppelklicken und den Assistenten bestätigen. Die .NET-Runtime ist enthalten, es muss nichts zusätzlich installiert werden.
 
 Der Installer legt Startmenü- und optional Desktop-Verknüpfungen an und startet Still nach der Installation. Für Website-Sperren läuft Still dabei mit Administratorrechten. Bei späteren Starts über die Verknüpfung startet es normal; für Website-Sperren dann bitte „Als Administrator ausführen“ wählen oder den geschützten Autostart in den Einstellungen aktivieren.
 

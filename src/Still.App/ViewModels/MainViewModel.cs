@@ -45,7 +45,11 @@ public sealed class MainViewModel : ObservableObject
         Runtime = runtime;
         IsDemo = demoMode;
         Dialog = new DialogViewModel();
-        Update = new UpdateViewModel(runtime, AppInfo.Version);
+        Update = new UpdateViewModel(runtime, AppInfo.Version, RequestShutdown);
+        Update.ConfirmInstall = () => ConfirmAsync(
+            "Update installieren",
+            $"Still {Update.LatestVersion} wird heruntergeladen. Die App beendet sich dafür, danach übernimmt der Installer. Regeln und Statistiken bleiben erhalten.",
+            "Installieren");
 
         Today = new TodayViewModel(this);
         Rules = new RulesViewModel(this);

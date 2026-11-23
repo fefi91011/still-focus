@@ -867,6 +867,19 @@ public sealed class StillRuntime : IDisposable
         return result;
     }
 
+    /// <summary>
+    /// Remembers when the update check last ran. This is not a user edit, so it
+    /// neither needs an approval code nor touches any rules.
+    /// </summary>
+    public void RecordUpdateCheck(DateTimeOffset when)
+    {
+        lock (_gate)
+        {
+            _state.Settings.LastUpdateCheckUtc = when.ToUniversalTime();
+            SaveLocked();
+        }
+    }
+
     public OperationResult SaveSettings(StillSettings draft, bool approved)
     {
         OperationResult result;
@@ -899,6 +912,8 @@ public sealed class StillRuntime : IDisposable
                 DefaultMaxGraceUses = draft.DefaultMaxGraceUses,
                 WarningThresholdPercent = draft.WarningThresholdPercent,
                 BlockDohWhenBlocking = draft.BlockDohWhenBlocking,
+                CheckForUpdates = draft.CheckForUpdates,
+                LastUpdateCheckUtc = draft.LastUpdateCheckUtc,
                 BrowserProcesses = draft.BrowserProcesses.ToList()
             };
 

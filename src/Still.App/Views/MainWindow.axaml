@@ -22,7 +22,7 @@
           <Image Width="20" Height="20" Source="avares://Still.App/Assets/still.png" />
           <TextBlock Text="Still" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Center" />
           <Border Classes="badge" Padding="7,2" Margin="3,0,0,0">
-            <TextBlock Text="0.1" FontSize="8.5" Foreground="{StaticResource DimBrush}" />
+            <TextBlock Text="{Binding VersionText}" FontSize="8.5" Foreground="{StaticResource DimBrush}" />
           </Border>
           <Border Classes="badge" Background="{StaticResource AccentSoftBrush}" IsVisible="{Binding IsDemo}" Margin="2,0,0,0">
             <TextBlock Text="DEMO" FontSize="8.5" Foreground="{StaticResource AccentBrush}" />
@@ -176,7 +176,7 @@
                 BorderThickness="1"
                 CornerRadius="12"
                 Padding="14,9">
-          <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+          <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
             <TextBlock Text="↑"
                        Foreground="{StaticResource AccentBrush}"
                        FontSize="14"
@@ -191,14 +191,25 @@
                          FontSize="9.5"
                          Classes="muted"
                          TextWrapping="Wrap" />
+              <ProgressBar IsVisible="{Binding Update.IsInstalling}"
+                           Value="{Binding Update.InstallProgressPercent}"
+                           Height="3"
+                           Margin="0,3,0,0" />
             </StackPanel>
             <Button Grid.Column="2"
                     Classes="primary small"
-                    Content="Update ansehen"
-                    Command="{Binding Update.OpenReleaseCommand}"
+                    Content="Jetzt installieren"
+                    Command="{Binding Update.InstallCommand}"
+                    IsEnabled="{Binding !Update.IsInstalling}"
                     VerticalAlignment="Center"
                     Margin="10,0,0,0" />
             <Button Grid.Column="3"
+                    Classes="ghost small"
+                    Content="Release-Seite"
+                    Command="{Binding Update.OpenReleaseCommand}"
+                    VerticalAlignment="Center"
+                    Margin="4,0,0,0" />
+            <Button Grid.Column="4"
                     Classes="subtle small"
                     Content="×"
                     Command="{Binding Update.DismissCommand}"

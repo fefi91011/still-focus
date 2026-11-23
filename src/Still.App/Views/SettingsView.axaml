@@ -230,7 +230,7 @@
                     Classes="ghost small"
                     Content="Jetzt prüfen"
                     Command="{Binding Update.CheckCommand}"
-                    IsEnabled="{Binding !Update.IsChecking}"
+                    IsEnabled="{Binding Update.CanCheck}"
                     VerticalAlignment="Center" />
           </Grid>
 
@@ -240,11 +240,20 @@
                      TextWrapping="Wrap"
                      IsVisible="{Binding Update.HasDetail}" />
 
-          <Button Classes="primary small"
-                  Content="Update ansehen"
-                  Command="{Binding Update.OpenReleaseCommand}"
-                  IsVisible="{Binding Update.IsUpdateAvailable}"
-                  HorizontalAlignment="Left" />
+          <StackPanel Orientation="Horizontal" Spacing="8"
+                      IsVisible="{Binding Update.IsUpdateAvailable}">
+            <Button Classes="primary small"
+                    Content="Jetzt installieren"
+                    Command="{Binding Update.InstallCommand}"
+                    IsEnabled="{Binding !Update.IsInstalling}" />
+            <Button Classes="ghost small"
+                    Content="Release-Seite"
+                    Command="{Binding Update.OpenReleaseCommand}" />
+          </StackPanel>
+
+          <ProgressBar IsVisible="{Binding Update.IsInstalling}"
+                       Value="{Binding Update.InstallProgressPercent}"
+                       Height="3" />
 
           <Grid ColumnDefinitions="*,Auto">
             <StackPanel Spacing="1">

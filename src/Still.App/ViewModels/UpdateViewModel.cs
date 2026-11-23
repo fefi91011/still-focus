@@ -5,30 +5,37 @@ using Still.Core.Runtime;
 namespace Still.App.ViewModels;
 
 /// <summary>
-/// Compares the installed version with the newest GitHub release. A newer
-/// release shows a dismissible banner and a Settings card; nothing is
-/// downloaded automatically.
+/// Compares the installed version with the newest GitHub release. Automatic
+/// checks run at most once per day; a newer release shows a dismissible banner,
+/// and the installer can be downloaded and started right from the app.
 /// </summary>
 public sealed class UpdateViewModel : ObservableObject
 {
+    private static readonly TimeSpan AutomaticCheckInterval = TimeSpan.FromHours(24);
+
     private readonly StillRuntime _runtime;
 
     private bool _isChecking;
     private bool _isUpdateAvailable;
     private bool _isBannerVisible;
     private bool _dismissed;
+    private bool _isInstalling;
+    private double _installProgressPercent;
     private string _statusText;
     private string _detailText = string.Empty;
     private string _bannerText = string.Empty;
     private string _latestVersion = string.Empty;
     private string _releaseUrl = UpdateService.ReleasesPage;
     private string _lastCheckedText = "Noch nicht geprüft";
+    private UpdateInfo? _pending;
 
-    public UpdateViewModel(StillRuntime runtime, string currentVersion)
+    public UpdateViewModel(StillRuntime runtime, string currentVersion, Action? shutdown = null)
     {
         _runtime = runtime;
         CurrentVersion = currentVersion;
+        ShutdownRequested = shutdown;
         _statusText = $"Installiert: {currentVersion}";
+        ShowLastChecked();
 
         CheckCommand = new AsyncRelayCommand(CheckAsync, _ =>
             StatusText = "Prüfung gerade nicht möglich");
@@ -38,21 +45,37 @@ public sealed class UpdateViewModel : ObservableObject
             IsBannerVisible = false;
             _dismissed = true;
         });
+        InstallCommand = new AsyncRelayCommand(InstallAsync);
     }
 
     public string CurrentVersion { get; }
     public string LatestVersion => _latestVersion;
     public string ReleaseUrl => _releaseUrl;
 
+    /// <summary>Set by the main view model; asks before replacing the app.</summary>
+    public Func<Task<bool>>? ConfirmInstall { get; set; }
+
+    /// <summary>Quits Still so the installer can replace its files.</summary>
+    public Action? ShutdownRequested { get; }
+
     public ICommand CheckCommand { get; }
     public ICommand OpenReleaseCommand { get; }
     public ICommand DismissCommand { get; }
+    public ICommand InstallCommand { get; }
 
     public bool IsChecking
     {
         get => _isChecking;
-        private set => Set(ref _isChecking, value);
+        private set
+        {
+            if (Set(ref _isChecking, value))
+            {
+                Raise(nameof(CanCheck));
+            }
+        }
     }
+
+    public bool CanCheck => !IsChecking && !IsInstalling;
 
     public bool IsUpdateAvailable
     {
@@ -64,6 +87,24 @@ public sealed class UpdateViewModel : ObservableObject
     {
         get => _isBannerVisible;
         private set => Set(ref _isBannerVisible, value);
+    }
+
+    public bool IsInstalling
+    {
+        get => _isInstalling;
+        private set
+        {
+            if (Set(ref _isInstalling, value))
+            {
+                Raise(nameof(CanCheck));
+            }
+        }
+    }
+
+    public double InstallProgressPercent
+    {
+        get => _installProgressPercent;
+        private set => Set(ref _installProgressPercent, value);
     }
 
     public string StatusText
@@ -100,10 +141,19 @@ public sealed class UpdateViewModel : ObservableObject
 
     public async Task CheckOnStartupAsync()
     {
+        var last = _runtime.State.Settings.LastUpdateCheckUtc;
+
         if (!_runtime.State.Settings.CheckForUpdates)
         {
             StatusText = "Automatische Prüfung ist aus";
             DetailText = string.Empty;
+            return;
+        }
+
+        if (last is { } previous && DateTimeOffset.UtcNow - previous < AutomaticCheckInterval)
+        {
+            StatusText = $"Installiert: {CurrentVersion}";
+            DetailText = "Automatische Prüfung höchstens einmal pro Tag.";
             return;
         }
 
@@ -112,20 +162,21 @@ public sealed class UpdateViewModel : ObservableObject
 
     public async Task CheckAsync()
     {
-        if (IsChecking)
+        if (IsChecking || IsInstalling)
         {
             return;
         }
 
         IsChecking = true;
         StatusText = "Prüfe auf Updates …";
+        RecordCheck();
         try
         {
             var update = await UpdateService.CheckAsync(CurrentVersion);
-            LastCheckedText = $"Zuletzt geprüft: {DateTimeOffset.Now:dd.MM., HH:mm}";
 
             if (update is null)
             {
+                _pending = null;
                 IsUpdateAvailable = false;
                 IsBannerVisible = false;
                 StatusText = $"Aktuell ({CurrentVersion})";
@@ -133,13 +184,16 @@ public sealed class UpdateViewModel : ObservableObject
                 return;
             }
 
+            _pending = update;
             _latestVersion = update.Version;
             _releaseUrl = update.PageUrl;
             IsUpdateAvailable = true;
             IsBannerVisible = !_dismissed;
             BannerText = $"Still {update.Version} ist verfügbar";
             StatusText = $"Version {update.Version} ist verfügbar";
-            DetailText = $"Du nutzt {CurrentVersion}. Der Installer ersetzt die App, deine Daten bleiben erhalten.";
+            DetailText = update.InstallerUrl is not null
+                ? $"Du nutzt {CurrentVersion}. Das Update lässt sich direkt hier installieren; deine Daten bleiben erhalten."
+                : $"Du nutzt {CurrentVersion}. Dieses Release enthält keinen Installer, öffne die Release-Seite.";
         }
         catch (Exception)
         {
@@ -150,5 +204,75 @@ public sealed class UpdateViewModel : ObservableObject
         {
             IsChecking = false;
         }
+    }
+
+    public async Task InstallAsync()
+    {
+        if (!IsUpdateAvailable || _pending is null || IsInstalling)
+        {
+            return;
+        }
+
+        if (ConfirmInstall is not null && !await ConfirmInstall())
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(_pending.InstallerUrl))
+        {
+            StatusText = "Kein Installer im Release";
+            DetailText = "Öffne die Release-Seite und lade den Installer manuell.";
+            return;
+        }
+
+        IsInstalling = true;
+        InstallProgressPercent = 0;
+        StatusText = "Lade Installer …";
+        DetailText = $"Still {_pending.Version} wird heruntergeladen. Danach beendet sich die App und der Installer übernimmt.";
+
+        try
+        {
+            var directory = Path.Combine(_runtime.DataDirectory, "updates");
+            var path = await UpdateService.DownloadInstallerAsync(
+                _pending,
+                directory,
+                new Progress<double>(value =>
+                {
+                    InstallProgressPercent = value * 100;
+                    StatusText = $"Lade Installer … {value:P0}";
+                }));
+
+            StatusText = "Installer gestartet";
+            DetailText = "Still beendet sich jetzt. Der Installer ersetzt die App, deine Daten bleiben erhalten.";
+            AppInstaller.StartAfterExit(path);
+
+            await Task.Delay(1200);
+            ShutdownRequested?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            StatusText = "Update konnte nicht geladen werden";
+            DetailText = ex.Message + " Du kannst den Installer über die Release-Seite laden.";
+        }
+        finally
+        {
+            IsInstalling = false;
+            InstallProgressPercent = 0;
+        }
+    }
+
+    private void RecordCheck()
+    {
+        var now = DateTimeOffset.UtcNow;
+        _runtime.RecordUpdateCheck(now);
+        LastCheckedText = $"Zuletzt geprüft: {now.ToLocalTime():dd.MM., HH:mm}";
+    }
+
+    private void ShowLastChecked()
+    {
+        var last = _runtime.State.Settings.LastUpdateCheckUtc;
+        LastCheckedText = last is { } value
+            ? $"Zuletzt geprüft: {value.ToLocalTime():dd.MM., HH:mm}"
+            : "Noch nicht geprüft";
     }
 }

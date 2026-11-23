@@ -4,7 +4,9 @@ namespace Still.App.Services;
 
 /// <summary>
 /// The Inno Setup uninstaller sits next to the app. It is started after Still
-/// has closed, so no file is locked while it removes the installation.
+/// has closed, so no file is locked while it removes the installation. The
+/// uninstaller stays interactive: it shows its own confirmation and reports
+/// cleanup problems, so no silent switches are passed.
 /// </summary>
 public static class AppUninstaller
 {
@@ -24,7 +26,7 @@ public static class AppUninstaller
     public static void StartAfterExit(string uninstallerPath, int delaySeconds = 3)
     {
         var arguments =
-            $"/c timeout /t {delaySeconds} /nobreak >nul & \"{uninstallerPath}\" /SILENT /SUPPRESSMSGBOXES /NORESTART";
+            $"/c timeout /t {delaySeconds} /nobreak >nul & start \"\" \"{uninstallerPath}\" /NORESTART";
 
         Process.Start(new ProcessStartInfo("cmd.exe", arguments)
         {

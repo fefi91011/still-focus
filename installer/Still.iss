@@ -49,7 +49,44 @@ Name: "{autodesktop}\Still"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{ap
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "Still jetzt starten"; Flags: nowait postinstall skipifsilent
 
-[UninstallRun]
-Filename: "{app}\{#MyAppExeName}"; Parameters: "--cleanup"; Flags: runhidden waituntilterminated; RunOnceId: "CleanupSystemChanges"
-Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /F /TN ""Still Autostart"""; Flags: runhidden; RunOnceId: "RemoveStillAutostart"
-Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /F /TN ""Still Watchdog"""; Flags: runhidden; RunOnceId: "RemoveStillWatchdog"
+[Code]
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+var
+  ResultCode: Integer;
+  AppExe: String;
+  Problems: String;
+begin
+  if CurUninstallStep <> usUninstall then
+    Exit;
+
+  AppExe := ExpandConstant('{app}\{#MyAppExeName}');
+  if not FileExists(AppExe) then
+    Exit;
+
+  { --cleanup returns 1 = hosts failed, 2 = autostart failed, 4 = unexpected. }
+  if not Exec(AppExe, '--cleanup', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    MsgBox('Still konnte nicht gestartet werden, um hosts-Datei und Autostart zu bereinigen.' + #13#10 +
+           'Bitte entferne die Still-Eintraege in der hosts-Datei und die geplanten Aufgaben' + #13#10 +
+           '"Still Autostart" und "Still Watchdog" danach manuell.',
+           mbError, MB_OK);
+    Exit;
+  end;
+
+  if ResultCode = 0 then
+    Exit;
+
+  Problems := '';
+  if (ResultCode and 1) <> 0 then
+    Problems := Problems + '- Die hosts-Datei enthaelt noch Still-Eintraege.' + #13#10;
+  if (ResultCode and 2) <> 0 then
+    Problems := Problems + '- Die Autostart-Aufgaben "Still Autostart" und "Still Watchdog" konnten nicht entfernt werden.' + #13#10;
+  if (ResultCode and 4) <> 0 then
+    Problems := Problems + '- Die Bereinigung ist unerwartet fehlgeschlagen.' + #13#10;
+
+  MsgBox('Diese Systemaenderungen konnten nicht zurueckgenommen werden:' + #13#10 + #13#10 +
+         Problems + #13#10 +
+         'Starte Still einmal als Administrator und nutze dort die Deinstallation erneut,' + #13#10 +
+         'oder entferne die Eintraege manuell in der hosts-Datei und der Aufgabenplanung.',
+         mbError, MB_OK);
+end;

@@ -318,6 +318,7 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
             WarningThresholdPercent = threshold,
             BlockDohWhenBlocking = BlockDoh,
             CheckForUpdates = CheckForUpdates,
+            LastUpdateCheckUtc = current.LastUpdateCheckUtc,
             BrowserProcesses = browsers
         };
 

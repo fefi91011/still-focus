@@ -15,6 +15,9 @@ public sealed class StillSettings
     public int WarningThresholdPercent { get; set; } = 80;
     public bool BlockDohWhenBlocking { get; set; } = true;
     public bool CheckForUpdates { get; set; } = true;
+
+    /// <summary>Last automatic or manual update check, stored in UTC.</summary>
+    public DateTimeOffset? LastUpdateCheckUtc { get; set; }
     public List<string> BrowserProcesses { get; set; } =
     [
         "chrome", "msedge", "firefox", "brave", "opera", "vivaldi", "arc", "zen"

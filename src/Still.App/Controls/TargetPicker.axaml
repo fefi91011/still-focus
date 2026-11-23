@@ -1,0 +1,239 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Still.App.Controls.TargetPicker">
+  <StackPanel Spacing="12">
+
+    <!-- Programme -->
+    <Border Classes="panel" Padding="16">
+      <StackPanel Spacing="10">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock Text="PROGRAMME" Classes="label" />
+            <TextBlock Text="Alles, was auf diesem PC installiert ist – aus Programme, x86 und Benutzerprogrammen."
+                       Classes="dim"
+                       FontSize="9.5"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+          <Border Grid.Column="1" Classes="sectionTag" VerticalAlignment="Top">
+            <TextBlock Text="{Binding Apps.Status}" Classes="sectionTagText" />
+          </Border>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding Apps.Search, Mode=TwoWay}" Watermark="Programm, Hersteller oder Pfad suchen …" />
+        </Grid>
+
+        <ItemsControl ItemsSource="{Binding Apps.Sources}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Classes="filter"
+                      Classes.active="{Binding IsSelected}"
+                      Command="{Binding Command}"
+                      Margin="0,0,5,0">
+                <TextBlock Text="{Binding Label}" />
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <ScrollViewer MaxHeight="238" VerticalScrollBarVisibility="Auto">
+          <ItemsControl ItemsSource="{Binding Apps.Apps}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Button Classes="appRow"
+                        Classes.added="{Binding IsAdded}"
+                        Command="{Binding ToggleCommand}"
+                        ToolTip.Tip="{Binding ToolTipText}">
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Border Classes="appTile">
+                      <Panel>
+                        <Image Source="{Binding Icon}"
+                               Width="22"
+                               Height="22"
+                               Stretch="Uniform"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding HasIcon}" />
+                        <TextBlock Text="{Binding Initials}"
+                                   Classes="appInitials"
+                                   IsVisible="{Binding !HasIcon}" />
+                      </Panel>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Name}"
+                                 FontSize="11"
+                                 FontWeight="SemiBold"
+                                 TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Meta}"
+                                 FontSize="9"
+                                 Classes="dim"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding AddLabel}"
+                               Classes="addMark"
+                               Classes.on="{Binding IsAdded}" />
+                  </Grid>
+                </Button>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </ScrollViewer>
+
+        <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+          <TextBox Text="{Binding ProcessInput, Mode=TwoWay}"
+                   Watermark="Nicht gelistet? Prozessname, z. B. discord"
+                   FontSize="11"
+                   MinHeight="30" />
+          <Button Grid.Column="1"
+                  Classes="ghost small"
+                  Content="Hinzufügen"
+                  Command="{Binding AddProcessCommand}"
+                  Margin="6,0,0,0" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
+    <!-- Kategorien -->
+    <Border Classes="panel" Padding="16">
+      <StackPanel Spacing="9">
+        <StackPanel Spacing="2">
+          <TextBlock Text="KATEGORIEN" Classes="label" />
+          <TextBlock Text="Ein Tipp sucht passende Programme auf diesem PC und ergänzt bekannte Webseiten."
+                     Classes="dim"
+                     FontSize="9.5"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+
+        <ItemsControl ItemsSource="{Binding Categories}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Classes="category"
+                      Classes.applied="{Binding IsApplied}"
+                      Command="{Binding ApplyCommand}"
+                      IsEnabled="{Binding HasMatches}"
+                      ToolTip.Tip="{Binding Description}"
+                      Margin="0,0,6,6">
+                <StackPanel Spacing="1">
+                  <TextBlock Text="{Binding Name}" FontSize="11.5" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding CountLabel}" FontSize="9" Classes="dim" />
+                </StackPanel>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+
+    <!-- Webseiten -->
+    <Border Classes="panel" Padding="16">
+      <StackPanel Spacing="10">
+        <StackPanel Spacing="2">
+          <TextBlock Text="WEBSEITEN" Classes="label" />
+          <TextBlock Text="Adresse eintippen – das Icon wird direkt von der Seite geladen."
+                     Classes="dim"
+                     FontSize="9.5"
+                     TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBox Text="{Binding WebsiteInput, Mode=TwoWay}" Watermark="youtube.com">
+            <TextBox.KeyBindings>
+              <KeyBinding Gesture="Enter" Command="{Binding AddWebsiteCommand}" />
+            </TextBox.KeyBindings>
+          </TextBox>
+          <Button Grid.Column="1"
+                  Classes="primary"
+                  Content="Hinzufügen"
+                  Command="{Binding AddWebsiteCommand}"
+                  Margin="6,0,0,0" />
+        </Grid>
+
+        <Border Classes="panel" Padding="11" IsVisible="{Binding HasWebsitePreview}">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Border Classes="iconPreview" Width="42" Height="42">
+              <Panel>
+                <TextBlock Text="{Binding WebsiteInitial}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource AccentBrush}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           IsVisible="{Binding !HasWebsiteIcon}" />
+                <Image Source="{Binding WebsiteIcon}"
+                       Width="26"
+                       Height="26"
+                       Stretch="Uniform"
+                       IsVisible="{Binding HasWebsiteIcon}" />
+              </Panel>
+            </Border>
+
+            <StackPanel Grid.Column="1" Margin="11,0,0,0" Spacing="2" VerticalAlignment="Center">
+              <TextBlock Text="{Binding WebsitePreviewTitle}" FontSize="11.5" FontWeight="SemiBold" />
+              <TextBlock Text="{Binding WebsitePreviewHint}" FontSize="9" Classes="dim" TextWrapping="Wrap" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2" Spacing="3" VerticalAlignment="Center">
+              <ToggleSwitch IsChecked="{Binding IncludeSubdomains, Mode=TwoWay}"
+                            OnContent="Auch Subdomains"
+                            OffContent="Nur diese Domain"
+                            HorizontalAlignment="Right" />
+              <TextBlock Text="{Binding ScopeHint}"
+                         FontSize="8.5"
+                         Classes="dim"
+                         MaxWidth="190"
+                         TextWrapping="Wrap"
+                         TextAlignment="Right" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <ItemsControl ItemsSource="{Binding Targets}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Border Classes="chip" Margin="0,0,6,6" ToolTip.Tip="{Binding ToolTipText}">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                  <Border Classes="chipIcon" IsVisible="{Binding HasIcon}">
+                    <Image Source="{Binding Icon}"
+                           Width="12"
+                           Height="12"
+                           Stretch="Uniform"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+                  </Border>
+                  <TextBlock Text="{Binding KindLabel}"
+                             FontSize="8"
+                             Foreground="{StaticResource AccentBrush}"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Display}" FontSize="10.5" VerticalAlignment="Center" />
+                  <Button Classes="link"
+                          Content="{Binding ScopeLabel}"
+                          Command="{Binding ToggleScopeCommand}"
+                          IsVisible="{Binding IsWebsite}"
+                          VerticalAlignment="Center"
+                          ToolTip.Tip="Subdomains mit sperren oder nur diese Domain" />
+                  <Button Classes="chipX" Content="×" Command="{Binding RemoveCommand}" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+  </StackPanel>
+</UserControl>

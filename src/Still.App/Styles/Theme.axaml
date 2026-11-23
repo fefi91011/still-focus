@@ -408,4 +408,204 @@
   <Style Selector="ScrollViewer">
     <Setter Property="Background" Value="Transparent" />
   </Style>
+
+  <Style Selector="TextBlock.h4">
+    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Border.sectionTag">
+    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="7,3" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="TextBlock.sectionTagText">
+    <Setter Property="FontSize" Value="8.5" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    <Setter Property="LetterSpacing" Value="1.1" />
+  </Style>
+
+  <Style Selector="Button.segment">
+    <Setter Property="Background" Value="#0B0F13" />
+    <Setter Property="BorderBrush" Value="#242C37" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="12,6" />
+    <Setter Property="MinHeight" Value="30" />
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <Style Selector="Button.segment.active">
+    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="#3C533C" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Button.segment:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#171F28" />
+  </Style>
+
+  <Style Selector="Button.segment.active:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+  </Style>
+
+  <Style Selector="ToggleButton.day">
+    <Setter Property="Background" Value="#0B0F13" />
+    <Setter Property="BorderBrush" Value="#242C37" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="9,5" />
+    <Setter Property="MinHeight" Value="28" />
+    <Setter Property="MinWidth" Value="36" />
+    <Setter Property="FontSize" Value="10.5" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Hand" />
+  </Style>
+
+  <Style Selector="ToggleButton.day:checked">
+    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="#3C533C" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Button.filter">
+    <Setter Property="Background" Value="#0B0F13" />
+    <Setter Property="BorderBrush" Value="#242C37" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+    <Setter Property="CornerRadius" Value="7" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="MinHeight" Value="24" />
+    <Setter Property="FontSize" Value="9.5" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <Style Selector="Button.filter.active">
+    <Setter Property="Background" Value="{StaticResource AccentSoftBrush}" />
+    <Setter Property="BorderBrush" Value="#3C533C" />
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+
+  <Style Selector="Button.appRow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="#1B222B" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="9" />
+    <Setter Property="Padding" Value="7,6" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </Style>
+
+  <Style Selector="Button.appRow:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#151B22" />
+  </Style>
+
+  <Style Selector="Button.appRow.added">
+    <Setter Property="Background" Value="#16201A" />
+    <Setter Property="BorderBrush" Value="#3C533C" />
+  </Style>
+
+  <Style Selector="Button.appRow.added:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#16201A" />
+  </Style>
+
+  <Style Selector="Border.appTile">
+    <Setter Property="Width" Value="28" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="CornerRadius" Value="7" />
+    <Setter Property="Background" Value="#1A212A" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="TextBlock.appInitials">
+    <Setter Property="FontSize" Value="9" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Center" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="TextBlock.addMark">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="8,0,2,0" />
+  </Style>
+
+  <Style Selector="TextBlock.addMark.on">
+    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+  </Style>
+
+  <Style Selector="Button.category">
+    <Setter Property="Background" Value="#0B0F13" />
+    <Setter Property="BorderBrush" Value="#242C37" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Padding" Value="11,7" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+  </Style>
+
+  <Style Selector="Button.category:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#151B22" />
+  </Style>
+
+  <Style Selector="Button.category.applied">
+    <Setter Property="Background" Value="#16201A" />
+    <Setter Property="BorderBrush" Value="#3C533C" />
+  </Style>
+
+  <Style Selector="Button.category.applied:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#16201A" />
+  </Style>
+
+  <Style Selector="Button.category:disabled">
+    <Setter Property="Opacity" Value="0.4" />
+  </Style>
+
+  <Style Selector="Button.link">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Foreground" Value="{StaticResource DimBrush}" />
+    <Setter Property="Padding" Value="2,0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontSize" Value="9" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="CornerRadius" Value="4" />
+  </Style>
+
+  <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+    <Setter Property="Background" Value="#1A212A" />
+  </Style>
+
+  <Style Selector="Border.iconPreview">
+    <Setter Property="Width" Value="46" />
+    <Setter Property="Height" Value="46" />
+    <Setter Property="CornerRadius" Value="10" />
+    <Setter Property="Background" Value="#0B0F13" />
+    <Setter Property="BorderBrush" Value="#242C37" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="Border.chipIcon">
+    <Setter Property="Width" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="CornerRadius" Value="4" />
+    <Setter Property="Background" Value="#0B0F13" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
 </Styles>

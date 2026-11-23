@@ -13,6 +13,12 @@ public sealed class Target
     public string Value { get; set; } = string.Empty;
     public string? Label { get; set; }
 
+    /// <summary>
+    /// Websites only: also match every subdomain of <see cref="Value"/>. The hosts file
+    /// can only carry exact hosts, so this mainly widens browser and app checks.
+    /// </summary>
+    public bool IncludeSubdomains { get; set; } = true;
+
     public Target()
     {
     }
@@ -46,13 +52,18 @@ public sealed class Target
         }
 
         var normalized = NormalizeHost(host);
-        return normalized.Equals(Value, StringComparison.OrdinalIgnoreCase)
-               || normalized.EndsWith("." + Value, StringComparison.OrdinalIgnoreCase);
+        if (normalized.Equals(Value, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return IncludeSubdomains
+               && normalized.EndsWith("." + Value, StringComparison.OrdinalIgnoreCase);
     }
 
     public bool SameAs(Target other) => Kind == other.Kind && string.Equals(Value, other.Value, StringComparison.OrdinalIgnoreCase);
 
-    public Target Clone() => new(Kind, Value, Label);
+    public Target Clone() => new(Kind, Value, Label) { IncludeSubdomains = IncludeSubdomains };
 
     public static string Normalize(TargetKind kind, string? raw) =>
         kind == TargetKind.Process ? NormalizeProcess(raw) : NormalizeHost(raw);

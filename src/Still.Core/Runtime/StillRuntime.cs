@@ -526,7 +526,7 @@ public sealed class StillRuntime : IDisposable
             }
 
             clone.Targets = clone.Targets
-                .Select(t => new Target(t.Kind, t.Value, t.Label))
+                .Select(t => new Target(t.Kind, t.Value, t.Label) { IncludeSubdomains = t.IncludeSubdomains })
                 .Where(t => t.Value.Length > 0)
                 .GroupBy(t => ((int)t.Kind, t.Value), StringPairComparer.Instance)
                 .Select(g => g.First())
@@ -628,7 +628,7 @@ public sealed class StillRuntime : IDisposable
             var clone = allowance.Clone();
             clone.Name = clone.Name.Trim();
             clone.Targets = clone.Targets
-                .Select(t => new Target(t.Kind, t.Value, t.Label))
+                .Select(t => new Target(t.Kind, t.Value, t.Label) { IncludeSubdomains = t.IncludeSubdomains })
                 .Where(t => t.Value.Length > 0)
                 .GroupBy(t => ((int)t.Kind, t.Value), StringPairComparer.Instance)
                 .Select(g => g.First())

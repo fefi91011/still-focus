@@ -121,7 +121,7 @@ public sealed class AppState
             rule.Targets ??= new();
             rule.Targets = rule.Targets
                 .Where(t => t is not null)
-                .Select(t => new Target(t.Kind, t.Value, t.Label))
+                .Select(t => new Target(t.Kind, t.Value, t.Label) { IncludeSubdomains = t.IncludeSubdomains })
                 .Where(t => t.Value.Length > 0)
                 .ToList();
             rule.Schedule ??= Schedule.Always();
@@ -145,7 +145,7 @@ public sealed class AppState
             allowance.Targets ??= new();
             allowance.Targets = allowance.Targets
                 .Where(t => t is not null)
-                .Select(t => new Target(t.Kind, t.Value, t.Label))
+                .Select(t => new Target(t.Kind, t.Value, t.Label) { IncludeSubdomains = t.IncludeSubdomains })
                 .Where(t => t.Value.Length > 0)
                 .ToList();
             allowance.Schedule ??= Schedule.Always();

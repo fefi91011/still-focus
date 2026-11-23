@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Still.App.Controls"
              x:Class="Still.App.Views.RulesView">
   <StackPanel Spacing="14">
     <Grid ColumnDefinitions="Auto,*,Auto">
@@ -25,19 +26,24 @@
               IsVisible="{Binding IsAllowancesTab}" />
     </Grid>
 
-    <Grid ColumnDefinitions="350,*">
-      <Border Classes="card" Padding="14">
-        <StackPanel Spacing="8">
+    <Grid ColumnDefinitions="300,*">
+      <Border Classes="card" Padding="14" VerticalAlignment="Top">
+        <StackPanel Spacing="9">
           <Grid ColumnDefinitions="*,Auto">
             <TextBlock Text="{Binding RulesCountText}" Classes="label" IsVisible="{Binding IsRulesTab}" />
             <TextBlock Text="{Binding AllowancesCountText}" Classes="label" IsVisible="{Binding IsAllowancesTab}" />
+            <TextBlock Grid.Column="1"
+                       Text="Aktiv · Geplant · Pausiert"
+                       FontSize="8.5"
+                       Classes="dim"
+                       VerticalAlignment="Center" />
           </Grid>
 
           <TextBlock Text="Noch keine Regeln. Lege die erste an – zum Beispiel Deep Work für YouTube und Reddit."
                      Classes="muted"
                      FontSize="10.5"
                      TextWrapping="Wrap"
-                     IsVisible="{Binding !HasRules}" />
+                     IsVisible="{Binding ShowRulesEmpty}" />
 
           <ItemsControl ItemsSource="{Binding Rules}" IsVisible="{Binding IsRulesTab}">
             <ItemsControl.ItemTemplate>
@@ -81,7 +87,7 @@
                      Classes="muted"
                      FontSize="10.5"
                      TextWrapping="Wrap"
-                     IsVisible="{Binding !HasAllowances}" />
+                     IsVisible="{Binding ShowAllowancesEmpty}" />
 
           <ItemsControl ItemsSource="{Binding Allowances}" IsVisible="{Binding IsAllowancesTab}">
             <ItemsControl.ItemTemplate>
@@ -113,371 +119,287 @@
       </Border>
 
       <Grid Grid.Column="1" Margin="16,0,0,0">
-        <Border Classes="card" IsVisible="{Binding !Editor.IsOpen}">
-          <StackPanel Spacing="9" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20,60">
-            <TextBlock Text="Eine Regel, viele Möglichkeiten" Classes="h3" TextAlignment="Center" />
-            <TextBlock Text="Wähle links eine Regel aus oder lege eine neue an. Zeitplan, Tageslimit, Nachfristen und Ausnahmen lassen sich frei kombinieren."
+        <Border Classes="card" IsVisible="{Binding NoEditorOpen}" VerticalAlignment="Top">
+          <StackPanel Spacing="10" Margin="10,26">
+            <TextBlock Text="Eine Regel, von oben nach unten" Classes="h2" TextAlignment="Center" />
+            <TextBlock Text="Name, Zeitraum, Nachfristen und Ziele. Programme kommen aus einer echten Suche auf diesem PC, Kategorien finden Passendes selbst, Webseiten zeigen ihr Icon beim Eintippen."
                        Classes="muted"
-                       FontSize="11"
+                       FontSize="11.5"
                        TextAlignment="Center"
                        TextWrapping="Wrap"
-                       MaxWidth="360" />
+                       MaxWidth="430"
+                       HorizontalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0,6,0,0">
+              <Button Classes="primary" Content="Erste Regel anlegen" Command="{Binding NewRuleCommand}" IsVisible="{Binding IsRulesTab}" />
+              <Button Classes="primary" Content="Erste Ausnahme anlegen" Command="{Binding NewAllowanceCommand}" IsVisible="{Binding IsAllowancesTab}" />
+            </StackPanel>
           </StackPanel>
         </Border>
 
-        <Border Classes="card" IsVisible="{Binding Editor.IsOpen}">
-          <StackPanel Spacing="13">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="{Binding Editor.EditorTitle}" Classes="h3" />
-              <Button Grid.Column="1" Classes="subtle small" Content="×" Command="{Binding Editor.CancelCommand}" />
-            </Grid>
+        <!-- Regel-Editor -->
+        <Border Classes="card"
+                Padding="0"
+                IsVisible="{Binding Editor.IsOpen}"
+                VerticalAlignment="Top"
+                ClipToBounds="True">
+          <StackPanel>
+            <Border Padding="22,17"
+                    BorderBrush="{StaticResource BorderSoftBrush}"
+                    BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding Editor.EditorTitle}" Classes="h2" />
+                  <TextBlock Text="{Binding Editor.EditorLead}" Classes="muted" FontSize="10.5" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            Spacing="8"
+                            VerticalAlignment="Center">
+                  <ToggleSwitch IsChecked="{Binding Editor.Enabled, Mode=TwoWay}"
+                                OnContent="Regel aktiv"
+                                OffContent="Pausiert" />
+                  <Button Classes="subtle small" Content="×" Command="{Binding Editor.CancelCommand}" />
+                </StackPanel>
+              </Grid>
+            </Border>
 
-            <StackPanel Spacing="5">
-              <TextBlock Text="Name" Classes="label" />
-              <TextBox Text="{Binding Editor.Name, Mode=TwoWay}" Watermark="z. B. Deep Work" />
-            </StackPanel>
+            <StackPanel Margin="20,16" Spacing="12">
 
-            <StackPanel Spacing="5">
-              <TextBlock Text="Notiz (optional)" Classes="label" />
-              <TextBox Text="{Binding Editor.Note, Mode=TwoWay}" Watermark="Warum diese Regel dir guttut" />
-            </StackPanel>
-
-            <Border Classes="panel">
-              <StackPanel Spacing="8">
-                <TextBlock Text="ZIELE" Classes="label" />
-                <ItemsControl ItemsSource="{Binding Editor.Targets}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Border Classes="chip" Margin="0,0,6,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                          <TextBlock Text="{Binding KindLabel}"
-                                     FontSize="8"
-                                     Foreground="{StaticResource AccentBrush}"
-                                     VerticalAlignment="Center" />
-                          <TextBlock Text="{Binding Display}" FontSize="10.5" VerticalAlignment="Center" />
-                          <Button Classes="chipX" Content="×" Command="{Binding RemoveCommand}" />
-                        </StackPanel>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBox Text="{Binding Editor.TargetInput, Mode=TwoWay}"
-                           Watermark="youtube.com oder discord" />
-                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="6,0,0,0">
-                    <Button Classes="ghost small" Content="Website" Command="{Binding Editor.AddWebsiteCommand}" />
-                    <Button Classes="ghost small" Content="App" Command="{Binding Editor.AddAppCommand}" />
+              <!-- Name -->
+              <Border Classes="panel" Padding="16">
+                <StackPanel Spacing="8">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="NAME" Classes="label" />
+                    <TextBlock Text="Wie du diese Regel später wiedererkennst." Classes="dim" FontSize="9.5" />
                   </StackPanel>
-                </Grid>
+                  <TextBox Text="{Binding Editor.Name, Mode=TwoWay}" Watermark="z. B. Deep Work am Morgen" />
+                </StackPanel>
+              </Border>
 
-                <Border Classes="panel" Margin="0,8,0,0" Padding="10">
-                  <StackPanel Spacing="7">
-                    <Grid ColumnDefinitions="*,Auto">
-                      <StackPanel Spacing="1">
-                        <TextBlock Text="PROGRAMME AUS DEM ORDNER" Classes="label" />
-                        <TextBlock Text="Apps aus den Programme-Ordnern auswählen, ohne den Prozessnamen zu kennen."
-                                   Classes="dim"
-                                   FontSize="9.5"
-                                   TextWrapping="Wrap" />
-                      </StackPanel>
-                      <Button Grid.Column="1"
-                              Classes="ghost small"
-                              Content="Programme anzeigen"
-                              Command="{Binding Editor.AppPicker.ToggleCommand}"
-                              Margin="8,0,0,0" />
-                    </Grid>
-
-                    <StackPanel Spacing="6" IsVisible="{Binding Editor.AppPicker.IsOpen}">
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBox Text="{Binding Editor.AppPicker.Search, Mode=TwoWay}"
-                                 Watermark="Programm suchen …" />
-                        <Button Grid.Column="1"
-                                Classes="subtle small"
-                                Content="×"
-                                Command="{Binding Editor.AppPicker.CloseCommand}"
-                                Margin="6,0,0,0" />
-                      </Grid>
-                      <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding Editor.AppPicker.Apps}">
-                          <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                              <Button Classes="row" Command="{Binding AddCommand}" Margin="0,0,0,4">
-                                <StackPanel Spacing="2">
-                                  <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                                  <TextBlock Text="{Binding Detail}"
-                                             FontSize="9"
-                                             Classes="dim"
-                                             TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                              </Button>
-                            </DataTemplate>
-                          </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                      </ScrollViewer>
-                      <TextBlock Text="{Binding Editor.AppPicker.Status}"
-                                 FontSize="9"
+              <!-- Zeitplan -->
+              <Border Classes="panel" Padding="16">
+                <StackPanel Spacing="10">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Spacing="2">
+                      <TextBlock Text="ZEITPLAN" Classes="label" />
+                      <TextBlock Text="An: nur in den Zeitfenstern. Aus: die Regel gilt rund um die Uhr."
                                  Classes="dim"
+                                 FontSize="9.5"
                                  TextWrapping="Wrap" />
                     </StackPanel>
-                  </StackPanel>
-                </Border>
-
-                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
-                  <ComboBox ItemsSource="{Binding Editor.WebPresets}"
-                            SelectedItem="{Binding Editor.SelectedPreset, Mode=TwoWay}"
-                            PlaceholderText="Website-Vorlage wählen">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding Name}" FontSize="11.5" />
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                  <Button Grid.Column="1"
-                          Classes="ghost small"
-                          Content="Website-Vorlage hinzufügen"
-                          Command="{Binding Editor.AddPresetCommand}"
-                          Margin="6,0,0,0" />
-                </Grid>
-              </StackPanel>
-            </Border>
-
-            <Border Classes="panel">
-              <StackPanel Spacing="9">
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBlock Text="ZEITPLAN" Classes="label" VerticalAlignment="Center" />
-                  <ToggleSwitch Grid.Column="1"
-                                IsChecked="{Binding Editor.IsWeekly, Mode=TwoWay}"
-                                OnContent="Wochentage"
-                                OffContent="Immer" />
-                </Grid>
-
-                <StackPanel Spacing="7" IsVisible="{Binding Editor.IsWeekly}">
-                  <ItemsControl ItemsSource="{Binding Editor.Days}">
-                    <ItemsControl.ItemsPanel>
-                      <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                      </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                      <DataTemplate>
-                        <CheckBox Content="{Binding Label}"
-                                  IsChecked="{Binding IsSelected, Mode=TwoWay}"
-                                  Margin="0,0,11,4" />
-                      </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-
-                  <Grid ColumnDefinitions="*,*">
-                    <StackPanel Spacing="4">
-                      <TextBlock Text="Von" Classes="label" />
-                      <TextBox Text="{Binding Editor.StartText, Mode=TwoWay}" Watermark="09:00" />
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="4">
-                      <TextBlock Text="Bis" Classes="label" />
-                      <TextBox Text="{Binding Editor.EndText, Mode=TwoWay}" Watermark="17:00" />
-                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1"
+                                  IsChecked="{Binding Editor.ScheduleEnabled, Mode=TwoWay}"
+                                  OnContent="Zeitfenster"
+                                  OffContent="Immer" />
                   </Grid>
-                </StackPanel>
-              </StackPanel>
-            </Border>
 
-            <Border Classes="panel">
-              <StackPanel Spacing="8">
-                <TextBlock Text="TAGESLIMIT" Classes="label" />
-                <Grid ColumnDefinitions="1.3*,*">
-                  <StackPanel Spacing="4">
-                    <TextBox Text="{Binding Editor.LimitText, Mode=TwoWay}" Watermark="leer = kein Limit" />
-                    <TextBlock Text="{Binding Editor.LimitHint}"
-                               FontSize="9.5"
+                  <TextBlock Text="Ohne Zeitfenster greift die Regel immer – das Tageslimit bestimmt dann, wie viel erlaubt ist."
+                             Classes="muted"
+                             FontSize="10.5"
+                             TextWrapping="Wrap"
+                             IsVisible="{Binding Editor.IsAlwaysMode}" />
+
+                  <StackPanel Spacing="10" IsVisible="{Binding Editor.IsWindowMode}">
+                    <ItemsControl ItemsSource="{Binding Editor.Days}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                          <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <ToggleButton Classes="day"
+                                        Content="{Binding Label}"
+                                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                        Margin="0,0,4,0" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <Button Classes="segment"
+                              Classes.active="{Binding Editor.UseEndTime}"
+                              Content="Bis Uhrzeit"
+                              Command="{Binding Editor.UseEndTimeCommand}" />
+                      <Button Classes="segment"
+                              Classes.active="{Binding Editor.UseDuration}"
+                              Content="Dauer"
+                              Command="{Binding Editor.UseDurationCommand}" />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,*,*">
+                      <StackPanel Spacing="4">
+                        <TextBlock Text="Von" Classes="label" />
+                        <TextBox Text="{Binding Editor.StartText, Mode=TwoWay}" Watermark="09:00" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="4" IsVisible="{Binding Editor.UseEndTime}">
+                        <TextBlock Text="Bis" Classes="label" />
+                        <TextBox Text="{Binding Editor.EndText, Mode=TwoWay}" Watermark="17:00" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="2" Margin="8,0,0,0" Spacing="4" IsVisible="{Binding Editor.UseDuration}">
+                        <TextBlock Text="Dauer in Minuten" Classes="label" />
+                        <TextBox Text="{Binding Editor.DurationText, Mode=TwoWay}" Watermark="90" />
+                      </StackPanel>
+                    </Grid>
+
+                    <TextBlock Text="Endet die Dauer nach Mitternacht, läuft das Zeitfenster in den nächsten Tag hinein."
                                Classes="dim"
+                               FontSize="9"
+                               TextWrapping="Wrap"
+                               IsVisible="{Binding Editor.UseDuration}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <!-- Limit und Nachfristen -->
+              <Border Classes="panel" Padding="16">
+                <StackPanel Spacing="9">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="LIMIT &amp; NACHFRISTEN" Classes="label" />
+                    <TextBlock Text="Limit pro Tag, Anzahl der Nachfristen und wie lange eine Nachfrist gilt."
+                               Classes="dim"
+                               FontSize="9.5"
                                TextWrapping="Wrap" />
                   </StackPanel>
-                  <Grid Grid.Column="1" ColumnDefinitions="*,*" Margin="8,0,0,0">
+
+                  <Grid ColumnDefinitions="*,*,*">
                     <StackPanel Spacing="4">
-                      <TextBlock Text="Nachfrist" Classes="label" />
-                      <TextBox Text="{Binding Editor.GraceText, Mode=TwoWay}" Watermark="5" />
+                      <TextBlock Text="Limit pro Tag (Min)" Classes="label" />
+                      <TextBox Text="{Binding Editor.LimitText, Mode=TwoWay}" Watermark="leer = kein Limit" />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Margin="7,0,0,0" Spacing="4">
-                      <TextBlock Text="Max./Tag" Classes="label" />
+                    <StackPanel Grid.Column="1" Margin="8,0,0,0" Spacing="4">
+                      <TextBlock Text="Nachfristen" Classes="label" />
                       <TextBox Text="{Binding Editor.MaxGraceText, Mode=TwoWay}" Watermark="2" />
                     </StackPanel>
+                    <StackPanel Grid.Column="2" Margin="8,0,0,0" Spacing="4">
+                      <TextBlock Text="Dauer (Min)" Classes="label" />
+                      <TextBox Text="{Binding Editor.GraceText, Mode=TwoWay}" Watermark="5" />
+                    </StackPanel>
                   </Grid>
-                </Grid>
-              </StackPanel>
-            </Border>
 
-            <ToggleSwitch IsChecked="{Binding Editor.Enabled, Mode=TwoWay}"
-                          OnContent="Regel ist aktiv"
-                          OffContent="Regel pausiert" />
+                  <TextBlock Text="{Binding Editor.LimitHint}" FontSize="9.5" Classes="dim" TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
 
-            <TextBlock Text="{Binding Editor.ErrorText}"
-                       Foreground="{StaticResource DangerBrush}"
-                       FontSize="10.5"
-                       TextWrapping="Wrap"
-                       IsVisible="{Binding Editor.HasError}" />
+              <controls:TargetPicker DataContext="{Binding Editor.Selection}" />
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-              <Button Classes="danger"
-                      Content="Löschen"
-                      Command="{Binding Editor.DeleteCommand}"
-                      IsVisible="{Binding Editor.CanDelete}" />
-              <Button Classes="ghost" Content="Abbrechen" Command="{Binding Editor.CancelCommand}" />
-              <Button Classes="primary" Content="Speichern" Command="{Binding Editor.SaveCommand}" />
+              <!-- Die Regel -->
+              <Border Classes="hero" Padding="18">
+                <StackPanel Spacing="5">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="DIE REGEL" Classes="label" />
+                    <Border Grid.Column="1" Classes="badge ok" IsVisible="{Binding Editor.Enabled}">
+                      <TextBlock Text="AKTIV" FontSize="8.5" Foreground="{StaticResource AccentBrush}" />
+                    </Border>
+                    <Border Grid.Column="1" Classes="badge" IsVisible="{Binding !Editor.Enabled}">
+                      <TextBlock Text="PAUSIERT" FontSize="8.5" Classes="muted" />
+                    </Border>
+                  </Grid>
+                  <TextBlock Text="{Binding Editor.Summary}" FontSize="15.5" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Editor.SummaryDetail}"
+                             Classes="muted"
+                             FontSize="10.5"
+                             TextWrapping="Wrap" />
+                </StackPanel>
+              </Border>
+
+              <TextBlock Text="{Binding Editor.ErrorText}"
+                         Foreground="{StaticResource DangerBrush}"
+                         FontSize="10.5"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding Editor.HasError}" />
             </StackPanel>
+
+            <Border Padding="20,13"
+                    Background="#0E1217"
+                    BorderBrush="{StaticResource BorderSoftBrush}"
+                    BorderThickness="0,1,0,0">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Classes="danger"
+                        Content="Löschen"
+                        Command="{Binding Editor.DeleteCommand}"
+                        IsVisible="{Binding Editor.CanDelete}" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                  <Button Classes="ghost" Content="Abbrechen" Command="{Binding Editor.CancelCommand}" />
+                  <Button Classes="primary" Content="Regel speichern" Command="{Binding Editor.SaveCommand}" />
+                </StackPanel>
+              </Grid>
+            </Border>
           </StackPanel>
         </Border>
 
-        <Border Classes="card" IsVisible="{Binding AllowanceEditor.IsOpen}">
-          <StackPanel Spacing="13">
-            <Grid ColumnDefinitions="*,Auto">
-              <TextBlock Text="{Binding AllowanceEditor.EditorTitle}" Classes="h3" />
-              <Button Grid.Column="1" Classes="subtle small" Content="×" Command="{Binding AllowanceEditor.CancelCommand}" />
-            </Grid>
-
-            <TextBlock Text="Eine Ausnahme hebt Sperren für die gewählten Ziele auf, solange ihr Zeitfenster aktiv ist."
-                       Classes="muted"
-                       FontSize="10.5"
-                       TextWrapping="Wrap" />
-
-            <StackPanel Spacing="5">
-              <TextBlock Text="Name" Classes="label" />
-              <TextBox Text="{Binding AllowanceEditor.Name, Mode=TwoWay}" Watermark="z. B. Mittagspause" />
-            </StackPanel>
-
-            <Border Classes="panel">
-              <StackPanel Spacing="8">
-                <TextBlock Text="ERLAUBTE ZIELE" Classes="label" />
-                <ItemsControl ItemsSource="{Binding AllowanceEditor.Targets}">
-                  <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                      <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                  </ItemsControl.ItemsPanel>
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                      <Border Classes="chip" Margin="0,0,6,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                          <TextBlock Text="{Binding KindLabel}"
-                                     FontSize="8"
-                                     Foreground="{StaticResource AccentBrush}"
-                                     VerticalAlignment="Center" />
-                          <TextBlock Text="{Binding Display}" FontSize="10.5" VerticalAlignment="Center" />
-                          <Button Classes="chipX" Content="×" Command="{Binding RemoveCommand}" />
-                        </StackPanel>
-                      </Border>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-
-                <Grid ColumnDefinitions="*,Auto">
-                  <TextBox Text="{Binding AllowanceEditor.TargetInput, Mode=TwoWay}"
-                           Watermark="youtube.com oder steam" />
-                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" Margin="6,0,0,0">
-                    <Button Classes="ghost small" Content="Website" Command="{Binding AllowanceEditor.AddWebsiteCommand}" />
-                    <Button Classes="ghost small" Content="App" Command="{Binding AllowanceEditor.AddAppCommand}" />
-                  </StackPanel>
-                </Grid>
-
-                <Border Classes="panel" Margin="0,8,0,0" Padding="10">
-                  <StackPanel Spacing="7">
-                    <Grid ColumnDefinitions="*,Auto">
-                      <StackPanel Spacing="1">
-                        <TextBlock Text="PROGRAMME AUS DEM ORDNER" Classes="label" />
-                        <TextBlock Text="Apps aus den Programme-Ordnern auswählen, ohne den Prozessnamen zu kennen."
-                                   Classes="dim"
-                                   FontSize="9.5"
-                                   TextWrapping="Wrap" />
-                      </StackPanel>
-                      <Button Grid.Column="1"
-                              Classes="ghost small"
-                              Content="Programme anzeigen"
-                              Command="{Binding AllowanceEditor.AppPicker.ToggleCommand}"
-                              Margin="8,0,0,0" />
-                    </Grid>
-
-                    <StackPanel Spacing="6" IsVisible="{Binding AllowanceEditor.AppPicker.IsOpen}">
-                      <Grid ColumnDefinitions="*,Auto">
-                        <TextBox Text="{Binding AllowanceEditor.AppPicker.Search, Mode=TwoWay}"
-                                 Watermark="Programm suchen …" />
-                        <Button Grid.Column="1"
-                                Classes="subtle small"
-                                Content="×"
-                                Command="{Binding AllowanceEditor.AppPicker.CloseCommand}"
-                                Margin="6,0,0,0" />
-                      </Grid>
-                      <ScrollViewer MaxHeight="190" VerticalScrollBarVisibility="Auto">
-                        <ItemsControl ItemsSource="{Binding AllowanceEditor.AppPicker.Apps}">
-                          <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                              <Button Classes="row" Command="{Binding AddCommand}" Margin="0,0,0,4">
-                                <StackPanel Spacing="2">
-                                  <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                                  <TextBlock Text="{Binding Detail}"
-                                             FontSize="9"
-                                             Classes="dim"
-                                             TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                              </Button>
-                            </DataTemplate>
-                          </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                      </ScrollViewer>
-                      <TextBlock Text="{Binding AllowanceEditor.AppPicker.Status}"
-                                 FontSize="9"
-                                 Classes="dim"
-                                 TextWrapping="Wrap" />
-                    </StackPanel>
-                  </StackPanel>
-                </Border>
-
-                <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
-                  <ComboBox ItemsSource="{Binding AllowanceEditor.WebPresets}"
-                            SelectedItem="{Binding AllowanceEditor.SelectedPreset, Mode=TwoWay}"
-                            PlaceholderText="Website-Vorlage wählen">
-                    <ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <TextBlock Text="{Binding Name}" FontSize="11.5" />
-                      </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                  </ComboBox>
-                  <Button Grid.Column="1"
-                          Classes="ghost small"
-                          Content="Website-Vorlage hinzufügen"
-                          Command="{Binding AllowanceEditor.AddPresetCommand}"
-                          Margin="6,0,0,0" />
-                </Grid>
-              </StackPanel>
+        <!-- Ausnahme-Editor -->
+        <Border Classes="card"
+                Padding="0"
+                IsVisible="{Binding AllowanceEditor.IsOpen}"
+                VerticalAlignment="Top"
+                ClipToBounds="True">
+          <StackPanel>
+            <Border Padding="22,17"
+                    BorderBrush="{StaticResource BorderSoftBrush}"
+                    BorderThickness="0,0,0,1">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding AllowanceEditor.EditorTitle}" Classes="h2" />
+                  <TextBlock Text="{Binding AllowanceEditor.EditorLead}" Classes="muted" FontSize="10.5" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                  <ToggleSwitch IsChecked="{Binding AllowanceEditor.Enabled, Mode=TwoWay}"
+                                OnContent="Aktiv"
+                                OffContent="Pausiert" />
+                  <Button Classes="subtle small" Content="×" Command="{Binding AllowanceEditor.CancelCommand}" />
+                </StackPanel>
+              </Grid>
             </Border>
 
-            <StackPanel Spacing="5">
-              <TextBlock Text="Gültig bis (optional)" Classes="label" />
-              <TextBox Text="{Binding AllowanceEditor.ExpiresText, Mode=TwoWay}" Watermark="TT.MM.JJJJ · leer = unbegrenzt" />
+            <StackPanel Margin="20,16" Spacing="12">
+              <Border Classes="panel" Padding="16">
+                <StackPanel Spacing="8">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="NAME" Classes="label" />
+                    <TextBlock Text="Zum Beispiel Mittagspause oder ein freier Abend." Classes="dim" FontSize="9.5" />
+                  </StackPanel>
+                  <TextBox Text="{Binding AllowanceEditor.Name, Mode=TwoWay}" Watermark="z. B. Mittagspause" />
+                </StackPanel>
+              </Border>
+
+              <Border Classes="panel" Padding="16">
+                <StackPanel Spacing="8">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="GÜLTIG BIS" Classes="label" />
+                    <TextBlock Text="Leer lassen, wenn die Ausnahme unbefristet gelten soll." Classes="dim" FontSize="9.5" />
+                  </StackPanel>
+                  <TextBox Text="{Binding AllowanceEditor.ExpiresText, Mode=TwoWay}"
+                           Watermark="TT.MM.JJJJ, z. B. 30.11.2026"
+                           Width="240"
+                           HorizontalAlignment="Left" />
+                </StackPanel>
+              </Border>
+
+              <controls:TargetPicker DataContext="{Binding AllowanceEditor.Selection}" />
+
+              <TextBlock Text="{Binding AllowanceEditor.ErrorText}"
+                         Foreground="{StaticResource DangerBrush}"
+                         FontSize="10.5"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding AllowanceEditor.HasError}" />
             </StackPanel>
 
-            <ToggleSwitch IsChecked="{Binding AllowanceEditor.Enabled, Mode=TwoWay}"
-                          OnContent="Ausnahme ist aktiv"
-                          OffContent="Ausnahme pausiert" />
-
-            <TextBlock Text="{Binding AllowanceEditor.ErrorText}"
-                       Foreground="{StaticResource DangerBrush}"
-                       FontSize="10.5"
-                       TextWrapping="Wrap"
-                       IsVisible="{Binding AllowanceEditor.HasError}" />
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
-              <Button Classes="danger"
-                      Content="Löschen"
-                      Command="{Binding AllowanceEditor.DeleteCommand}"
-                      IsVisible="{Binding AllowanceEditor.CanDelete}" />
-              <Button Classes="ghost" Content="Abbrechen" Command="{Binding AllowanceEditor.CancelCommand}" />
-              <Button Classes="primary" Content="Speichern" Command="{Binding AllowanceEditor.SaveCommand}" />
-            </StackPanel>
+            <Border Padding="20,13"
+                    Background="#0E1217"
+                    BorderBrush="{StaticResource BorderSoftBrush}"
+                    BorderThickness="0,1,0,0">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Classes="danger"
+                        Content="Löschen"
+                        Command="{Binding AllowanceEditor.DeleteCommand}"
+                        IsVisible="{Binding AllowanceEditor.CanDelete}" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                  <Button Classes="ghost" Content="Abbrechen" Command="{Binding AllowanceEditor.CancelCommand}" />
+                  <Button Classes="primary" Content="Ausnahme speichern" Command="{Binding AllowanceEditor.SaveCommand}" />
+                </StackPanel>
+              </Grid>
+            </Border>
           </StackPanel>
         </Border>
       </Grid>

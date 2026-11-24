@@ -4,7 +4,7 @@
 
 Still ist eine leichte Fokus-App für Windows. Sie sperrt Programme und Websites, verbindet Zeitpläne mit Tageslimits, macht Aufgaben zu Zeitbelohnungen und lässt sich durch Menschen absichern, statt durch einen Account auf einem Server.
 
-> **Status 0.2.1 (Quellcode auf `main`, Installer noch nicht veröffentlicht).** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Website-Sperren laufen jetzt über die mitgelieferte Browser-Erweiterung; die hosts-Datei wird nur noch beim Update von älteren Versionen bereinigt. Installer, Overlay, Kontakt, Nachfrist und die Extension-Brücke wurden lokal geprüft. Scheduled Tasks brauchen noch eine breitere Prüfung mit Administratorrechten. Die Oberfläche ist deutsch; die Dokumentation ist englisch.
+> **Status 0.2.1.** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Website-Sperren laufen jetzt über die mitgelieferte Browser-Erweiterung; die hosts-Datei wird nur noch beim Update von älteren Versionen bereinigt. Installer, Overlay, Kontakt, Nachfrist und die Extension-Brücke wurden lokal geprüft. Scheduled Tasks brauchen noch eine breitere Prüfung mit Administratorrechten. Die Oberfläche ist deutsch; die Dokumentation ist englisch.
 
 ![Still – Heute](docs/screenshots/01-heute.png)
 
@@ -55,7 +55,7 @@ dotnet run --project src/Still.App
 
 ## Windows installieren (für Kunden)
 
-Der zuletzt veröffentlichte Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.2.0.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes. Ein 0.2.1-Build mit dem stillen In-Place-Updater ist lokal vorbereitet und noch nicht veröffentlicht.
+Der zuletzt veröffentlichte Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.2.1.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes.
 
 Installer lokal bauen:
 

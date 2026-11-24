@@ -6,7 +6,7 @@ Still blocks distracting apps and websites, ties schedules to daily limits, turn
 
 ![Still dashboard](docs/screenshots/01-heute.png)
 
-> **Status: 0.2.1 (source on `main`; installer not published yet).** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. Website blocking now runs through the bundled browser extension; the hosts file is only cleaned up on upgrades from older versions. The Windows installer, full-screen app overlay, contact action, grace action and extension bridge have been exercised locally. Scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
+> **Status: 0.2.1.** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. Website blocking now runs through the bundled browser extension; the hosts file is only cleaned up on upgrades from older versions. The Windows installer, full-screen app overlay, contact action, grace action and extension bridge have been exercised locally. Scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
 
 [Deutsche README](README.de.md)
 
@@ -98,7 +98,7 @@ dotnet run --project src/Still.App
 
 ## Install on Windows
 
-The latest published installer is in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.2.0.exe` and run it. The release notes include the SHA-256 checksum. A 0.2.1 build with the silent in-place updater is prepared locally and has not been published yet.
+The latest published installer is in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.2.1.exe` and run it. The release notes include the SHA-256 checksum.
 
 To build the installer locally:
 

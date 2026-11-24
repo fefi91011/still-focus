@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows.Input;
 using Avalonia.Media;
 using Still.App.Controls;
+using Still.Core.Engine;
 using Still.Core.Models;
 
 namespace Still.App.ViewModels;
@@ -34,6 +35,9 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
     private bool _hasTasks;
     private bool _hasExceptions;
     private bool _lockdownActive;
+    private bool _hasWebsiteTargets;
+    private bool _hasAppTargets;
+    private string _targetsSummary = string.Empty;
 
     public TodayViewModel(MainViewModel main)
     {
@@ -48,6 +52,8 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
     public ObservableCollection<RuleCardViewModel> RuleCards { get; } = new();
     public ObservableCollection<TaskMiniViewModel> Tasks { get; } = new();
     public ObservableCollection<ExceptionRowViewModel> Exceptions { get; } = new();
+    public ObservableCollection<OverviewTargetViewModel> WebsiteTargets { get; } = new();
+    public ObservableCollection<OverviewTargetViewModel> AppTargets { get; } = new();
     public IReadOnlyList<ChartBar> WeekBars { get; private set; } = Array.Empty<ChartBar>();
 
     public ICommand OpenRulesCommand { get; }
@@ -175,6 +181,38 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
         private set => Set(ref _hasExceptions, value);
     }
 
+    public bool HasWebsiteTargets
+    {
+        get => _hasWebsiteTargets;
+        private set
+        {
+            if (Set(ref _hasWebsiteTargets, value))
+            {
+                Raise(nameof(HasTargets));
+            }
+        }
+    }
+
+    public bool HasAppTargets
+    {
+        get => _hasAppTargets;
+        private set
+        {
+            if (Set(ref _hasAppTargets, value))
+            {
+                Raise(nameof(HasTargets));
+            }
+        }
+    }
+
+    public bool HasTargets => HasWebsiteTargets || HasAppTargets;
+
+    public string TargetsSummary
+    {
+        get => _targetsSummary;
+        private set => Set(ref _targetsSummary, value);
+    }
+
     public bool LockdownActive
     {
         get => _lockdownActive;
@@ -252,6 +290,7 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
         {
             _signature = sig;
             RebuildCards(state, snapshot, enabledRules, now);
+            RebuildTargets(state, snapshot, enabledRules, now);
             RebuildTasks(state, today);
             RebuildExceptions(state, now);
             WeekBars = BuildWeekBars(state, today);
@@ -329,6 +368,95 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
                 BarBrush = blocked ? UiBrushes.Danger : isWarning ? UiBrushes.Warning : UiBrushes.Accent
             });
         }
+    }
+
+    private void RebuildTargets(
+        AppState state,
+        EngineSnapshot snapshot,
+        IReadOnlyList<BlockRule> rules,
+        DateTimeOffset now)
+    {
+        WebsiteTargets.Clear();
+        AppTargets.Clear();
+
+        var entries = new Dictionary<string, (Target Target, List<RuleStatus> Statuses)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var rule in rules)
+        {
+            var status = snapshot.FindRule(rule.Id);
+            if (status is null)
+            {
+                continue;
+            }
+
+            foreach (var target in rule.DistinctTargets())
+            {
+                var key = $"{(int)target.Kind}:{target.Value}";
+                if (!entries.TryGetValue(key, out var entry))
+                {
+                    entry = (target.Clone(), new List<RuleStatus>());
+                    entries[key] = entry;
+                }
+
+                entry.Statuses.Add(status);
+            }
+        }
+
+        var rows = entries.Values
+            .Select(entry =>
+            {
+                var isExempt = state.Allowances.Any(allowance =>
+                    allowance.IsActiveAt(now) && allowance.Covers(entry.Target));
+                var isBlocked = !isExempt && (snapshot.LockdownActive || entry.Statuses.Any(status => status.Blocked));
+                var isArmed = entry.Statuses.Any(status => status.Armed);
+                var statusText = isExempt
+                    ? "Ausnahme"
+                    : isBlocked
+                        ? "Gesperrt"
+                        : isArmed
+                            ? "Bereit"
+                            : "Später";
+                var brush = isExempt
+                    ? UiBrushes.Info
+                    : isBlocked
+                        ? UiBrushes.Danger
+                        : isArmed
+                            ? UiBrushes.Accent
+                            : UiBrushes.Dim;
+
+                return new OverviewTargetViewModel(entry.Target, statusText, brush, isBlocked, isExempt);
+            })
+            .OrderByDescending(row => row.IsBlocked)
+            .ThenBy(row => row.IsExempt ? 1 : 0)
+            .ThenBy(row => row.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        foreach (var row in rows)
+        {
+            if (row.Kind == TargetKind.Website)
+            {
+                WebsiteTargets.Add(row);
+            }
+            else
+            {
+                AppTargets.Add(row);
+            }
+        }
+
+        HasWebsiteTargets = WebsiteTargets.Count > 0;
+        HasAppTargets = AppTargets.Count > 0;
+
+        var summary = new List<string>();
+        if (WebsiteTargets.Count > 0)
+        {
+            summary.Add(WebsiteTargets.Count == 1 ? "1 Webseite" : $"{WebsiteTargets.Count} Webseiten");
+        }
+
+        if (AppTargets.Count > 0)
+        {
+            summary.Add(AppTargets.Count == 1 ? "1 App" : $"{AppTargets.Count} Apps");
+        }
+
+        TargetsSummary = string.Join(" · ", summary);
     }
 
     private void RebuildTasks(AppState state, DateOnly today)
@@ -488,8 +616,11 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
         var allowances = string.Join("|", state.Allowances.Select(a =>
             $"{a.Id}:{a.Name}:{a.Enabled}:{a.IsActiveAt(DateTimeOffset.Now)}:{a.ExpiresAt}"));
         var days = string.Join("|", state.Days.Where(d => d.Date > today.AddDays(-7)).Select(d => $"{d.Date}:{d.FocusMinutes}:{d.ScreenSeconds / 60}"));
+        var ruleDefinitions = string.Join("|", state.Rules.Select(rule =>
+            $"{rule.Id}:{rule.Name}:{rule.Enabled}:{rule.DailyLimitMinutes}:{rule.GraceMinutes}:{rule.MaxGraceUsesPerDay}:{rule.Schedule.Describe()}:" +
+            string.Join(",", rule.DistinctTargets().Select(target => $"{(int)target.Kind}:{target.Value}:{target.Label}"))));
         var mode = snapshot.LockdownActive ? "lock" : snapshot.Pomodoro?.Phase.ToString() ?? "idle";
-        return $"{rules}§{tasks}§{completions}§{allowances}§{days}§{mode}";
+        return $"{rules}§{ruleDefinitions}§{tasks}§{completions}§{allowances}§{days}§{mode}";
     }
 }
 

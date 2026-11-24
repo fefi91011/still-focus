@@ -1,9 +1,11 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Avalonia.Threading;
+using Still.Core.Models;
 
 namespace Still.App.Services;
 
@@ -40,6 +42,58 @@ public static class AppIconService
 
         return await Dispatcher.UIThread.InvokeAsync(() =>
             BitmapCache.GetOrAdd(exePath, _ => CreateBitmap(pixels)));
+    }
+
+    /// <summary>Finds the installed executable for a process name and reads its icon.</summary>
+    public static async Task<Bitmap?> GetForProcessAsync(string processName)
+    {
+        var normalized = Target.NormalizeProcess(processName);
+        if (normalized.Length == 0)
+        {
+            return null;
+        }
+
+        var path = await Task.Run(() => FindExecutable(normalized));
+        return string.IsNullOrWhiteSpace(path) ? null : await GetBitmapAsync(path);
+    }
+
+    private static string? FindExecutable(string normalized)
+    {
+        // Prefer a running process: this is immediate, works for portable apps
+        // and also finds programs outside the installed-apps folders.
+        foreach (var process in Process.GetProcessesByName(normalized))
+        {
+            try
+            {
+                using (process)
+                {
+                    var path = process.MainModule?.FileName;
+                    if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    {
+                        return path;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // Access denied is normal for protected and elevated processes.
+            }
+        }
+
+        if (OperatingSystem.IsWindows() && normalized == "explorer")
+        {
+            var systemPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                "explorer.exe");
+            if (File.Exists(systemPath))
+            {
+                return systemPath;
+            }
+        }
+
+        return InstalledAppScanner.Scan()
+            .FirstOrDefault(app => app.ProcessName.Equals(normalized, StringComparison.OrdinalIgnoreCase))
+            ?.Path;
     }
 
     private static Task<byte[]?> GetPixelsAsync(string exePath) =>

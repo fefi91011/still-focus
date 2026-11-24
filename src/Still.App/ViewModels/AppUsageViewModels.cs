@@ -1,14 +1,47 @@
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
+using Still.App.Services;
 using Still.Core.Models;
 
 namespace Still.App.ViewModels;
 
-public sealed class AppUsageRowViewModel
+public sealed class AppUsageRowViewModel : ObservableObject
 {
+    private Bitmap? _icon;
+
     public string Name { get; init; } = string.Empty;
+    public string ProcessName { get; init; } = string.Empty;
     public string DurationText { get; init; } = string.Empty;
     public double Fraction { get; init; }
     public IBrush BarBrush { get; init; } = UiBrushes.Accent;
+
+    public Bitmap? Icon
+    {
+        get => _icon;
+        private set
+        {
+            if (Set(ref _icon, value))
+            {
+                Raise(nameof(HasIcon));
+            }
+        }
+    }
+
+    public bool HasIcon => Icon is not null;
+
+    public string Initials
+    {
+        get
+        {
+            var words = Name.Split([' ', '-', '.', '_'], StringSplitOptions.RemoveEmptyEntries).Take(2).ToList();
+            return words.Count == 0
+                ? "?"
+                : string.Concat(words.Select(word => char.ToUpperInvariant(word[0])));
+        }
+    }
+
+    internal void SetIcon(Bitmap icon) => Icon = icon;
 }
 
 /// <summary>
@@ -53,10 +86,13 @@ public sealed class AppUsageSectionViewModel
             .Select(item => new AppUsageRowViewModel
             {
                 Name = FriendlyName(item.Process),
+                ProcessName = item.Process,
                 DurationText = FormatDuration(item.Seconds),
                 Fraction = maxSeconds > 0 ? (double)item.Seconds / maxSeconds : 0
             })
             .ToList();
+
+        _ = LoadIconsAsync(rows);
 
         return new AppUsageSectionViewModel
         {
@@ -68,6 +104,25 @@ public sealed class AppUsageSectionViewModel
                 ? $"… und {grouped.Count - visible.Count} weitere Apps"
                 : string.Empty
         };
+    }
+
+    private static async Task LoadIconsAsync(IReadOnlyList<AppUsageRowViewModel> rows)
+    {
+        try
+        {
+            foreach (var row in rows)
+            {
+                var icon = await AppIconService.GetForProcessAsync(row.ProcessName);
+                if (icon is not null)
+                {
+                    await Dispatcher.UIThread.InvokeAsync(() => row.SetIcon(icon));
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // App icons are a visual nicety; the name and time always remain.
+        }
     }
 
     public static string FormatDuration(int seconds)

@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net.Http;
+using Avalonia.Media.Imaging;
 
 namespace Still.App.Services;
 
@@ -21,6 +22,26 @@ public static class WebsiteIconService
         string.IsNullOrWhiteSpace(domain)
             ? Task.FromResult<IReadOnlyList<byte[]>>(Array.Empty<byte[]>())
             : Cache.GetOrAdd(domain.Trim().ToLowerInvariant(), LoadAsync);
+
+    /// <summary>Returns the first decodable favicon candidate, or null when the site has none.</summary>
+    public static async Task<Bitmap?> GetBitmapAsync(string domain)
+    {
+        var payloads = await GetAsync(domain);
+        foreach (var bytes in payloads)
+        {
+            try
+            {
+                using var stream = new MemoryStream(bytes);
+                return new Bitmap(stream);
+            }
+            catch (Exception)
+            {
+                // Try the next candidate; not every ICO variant is decodable here.
+            }
+        }
+
+        return null;
+    }
 
     private static HttpClient CreateClient()
     {

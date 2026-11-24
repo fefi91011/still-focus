@@ -7,7 +7,7 @@ namespace Still.App.ViewModels;
 /// <summary>
 /// Compares the installed version with the newest GitHub release. Automatic
 /// checks run at most once per day; a newer release shows a dismissible banner,
-/// and the installer can be downloaded and started right from the app.
+/// and the setup can be downloaded and run silently right from the app.
 /// </summary>
 public sealed class UpdateViewModel : ObservableObject
 {
@@ -227,8 +227,8 @@ public sealed class UpdateViewModel : ObservableObject
 
         IsInstalling = true;
         InstallProgressPercent = 0;
-        StatusText = "Lade Installer …";
-        DetailText = $"Still {_pending.Version} wird heruntergeladen. Danach beendet sich die App und der Installer übernimmt.";
+        StatusText = "Lade Update …";
+        DetailText = $"Still {_pending.Version} wird heruntergeladen und danach ohne Assistent installiert.";
 
         try
         {
@@ -239,12 +239,13 @@ public sealed class UpdateViewModel : ObservableObject
                 new Progress<double>(value =>
                 {
                     InstallProgressPercent = value * 100;
-                    StatusText = $"Lade Installer … {value:P0}";
+                    StatusText = $"Lade Update … {value:P0}";
                 }));
 
-            StatusText = "Installer gestartet";
-            DetailText = "Still beendet sich jetzt. Der Installer ersetzt die App, deine Daten bleiben erhalten.";
-            AppInstaller.StartAfterExit(path);
+            var logPath = Path.Combine(directory, $"install-{_pending.Version}.log");
+            StatusText = "Update wird installiert";
+            DetailText = "Still beendet sich jetzt. Das Update läuft ohne weitere Eingaben und startet Still danach neu. Windows kann einmalig nach Administratorrechten fragen.";
+            AppInstaller.StartAfterExit(path, logPath);
 
             await Task.Delay(1200);
             ShutdownRequested?.Invoke();

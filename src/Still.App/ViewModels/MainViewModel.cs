@@ -48,7 +48,9 @@ public sealed class MainViewModel : ObservableObject
         Update = new UpdateViewModel(runtime, AppInfo.Version, RequestShutdown);
         Update.ConfirmInstall = () => ConfirmAsync(
             "Update installieren",
-            $"Still {Update.LatestVersion} wird heruntergeladen. Die App beendet sich dafür, danach übernimmt der Installer. Regeln und Statistiken bleiben erhalten.",
+            $"Still {Update.LatestVersion} wird heruntergeladen und ohne Assistent installiert. " +
+            "Die App beendet sich dafür und startet danach neu. Regeln und Statistiken bleiben erhalten. " +
+            "Windows kann einmalig nach Administratorrechten fragen.",
             "Installieren");
 
         Today = new TodayViewModel(this);

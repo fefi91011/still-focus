@@ -21,8 +21,29 @@
     <ItemsControl ItemsSource="{Binding Rows}">
       <ItemsControl.ItemTemplate>
         <DataTemplate>
-          <StackPanel Spacing="3" Margin="0,0,0,8">
-            <Grid ColumnDefinitions="*,Auto">
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,0,0,8">
+            <Border Grid.RowSpan="2"
+                    Classes="appTile"
+                    Width="24"
+                    Height="24"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center">
+              <Panel>
+                <Image Source="{Binding Icon}"
+                       Width="17"
+                       Height="17"
+                       Stretch="Uniform"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding HasIcon}" />
+                <TextBlock Text="{Binding Initials}"
+                           Classes="appInitials"
+                           FontSize="8"
+                           IsVisible="{Binding !HasIcon}" />
+              </Panel>
+            </Border>
+
+            <Grid Grid.Column="1" ColumnDefinitions="*,Auto">
               <TextBlock Text="{Binding Name}"
                          FontSize="11"
                          TextTrimming="CharacterEllipsis" />
@@ -31,11 +52,13 @@
                          FontSize="10.5"
                          Classes="muted" />
             </Grid>
-            <controls:MeterBar Value="{Binding Fraction}"
+            <controls:MeterBar Grid.Row="1"
+                               Grid.Column="1"
+                               Value="{Binding Fraction}"
                                Fill="{Binding BarBrush}"
                                Height="3"
                                Thickness="3" />
-          </StackPanel>
+          </Grid>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
     </ItemsControl>

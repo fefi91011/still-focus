@@ -2,6 +2,50 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="using:Still.App.Controls"
              x:Class="Still.App.Views.TodayView">
+  <UserControl.Resources>
+    <DataTemplate x:Key="OverviewTargetTemplate">
+      <Border Classes="panel"
+              Padding="7"
+              Margin="0,0,6,6"
+              ToolTip.Tip="{Binding ToolTipText}">
+        <StackPanel Orientation="Horizontal" Spacing="7">
+          <Border Classes="appTile" Width="28" Height="28">
+            <Panel>
+              <Image Source="{Binding Icon}"
+                     Width="20"
+                     Height="20"
+                     Stretch="Uniform"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     IsVisible="{Binding HasIcon}" />
+              <TextBlock Text="{Binding Initials}"
+                         Classes="appInitials"
+                         FontSize="9.5"
+                         IsVisible="{Binding !HasIcon}" />
+            </Panel>
+          </Border>
+          <StackPanel Spacing="1" VerticalAlignment="Center">
+            <TextBlock Text="{Binding Name}"
+                       FontSize="11"
+                       FontWeight="SemiBold"
+                       MaxWidth="145"
+                       TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding Detail}"
+                       Classes="dim"
+                       FontSize="8.5"
+                       MaxWidth="145"
+                       TextTrimming="CharacterEllipsis" />
+          </StackPanel>
+          <Border Classes="badge" Padding="7,2" Margin="3,0,0,0">
+            <TextBlock Text="{Binding StatusText}"
+                       FontSize="8"
+                       Foreground="{Binding StatusBrush}" />
+          </Border>
+        </StackPanel>
+      </Border>
+    </DataTemplate>
+  </UserControl.Resources>
+
   <StackPanel Spacing="16">
     <Border Classes="hero">
       <Grid ColumnDefinitions="*,232">
@@ -103,6 +147,60 @@
           <controls:BarChart Height="126" Bars="{Binding ScreenTimeBars}" />
         </StackPanel>
       </Grid>
+    </Border>
+
+    <Border Classes="card">
+      <StackPanel Spacing="11">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBlock Text="Apps &amp; Websites" Classes="h3" />
+              <Border Classes="badge" Padding="7,2" IsVisible="{Binding HasTargets}">
+                <TextBlock Text="{Binding TargetsSummary}" FontSize="8.5" Classes="muted" />
+              </Border>
+            </StackPanel>
+            <TextBlock Text="Alle Ziele aus deinen aktiven Regeln – mit App- oder Website-Icon."
+                       Classes="dim"
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       MaxWidth="620" />
+          </StackPanel>
+          <Button Grid.Column="1"
+                  Classes="subtle small"
+                  Content="Regeln"
+                  Command="{Binding OpenRulesCommand}" />
+        </Grid>
+
+        <TextBlock Text="Noch keine Ziele. Lege eine Regel an, dann erscheinen Apps und Websites hier."
+                   Classes="muted"
+                   FontSize="10.5"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding !HasTargets}" />
+
+        <StackPanel Spacing="6" IsVisible="{Binding HasWebsiteTargets}">
+          <TextBlock Text="WEBSEITEN" Classes="label" />
+          <ItemsControl ItemsSource="{Binding WebsiteTargets}"
+                        ItemTemplate="{StaticResource OverviewTargetTemplate}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+          </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Spacing="6" IsVisible="{Binding HasAppTargets}">
+          <TextBlock Text="APPS" Classes="label" />
+          <ItemsControl ItemsSource="{Binding AppTargets}"
+                        ItemTemplate="{StaticResource OverviewTargetTemplate}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate>
+                <WrapPanel Orientation="Horizontal" />
+              </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+          </ItemsControl>
+        </StackPanel>
+      </StackPanel>
     </Border>
 
     <Border Classes="card">

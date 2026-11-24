@@ -1,5 +1,5 @@
 #define MyAppName "Still"
-#define MyAppVersion "0.2.0"
+#define MyAppVersion "0.2.1"
 #define MyAppPublisher "Still"
 #define MyAppExeName "Still.App.exe"
 #define MyAppId "{{B6E1F3A1-6C2D-4A6E-9E3B-2F1B7D4C8A90}"
@@ -12,7 +12,12 @@ AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\Still
 DefaultGroupName=Still
+UsePreviousAppDir=yes
+UsePreviousTasks=yes
+UsePreviousLanguage=yes
+DisableDirPage=yes
 DisableProgramGroupPage=yes
+ShowLanguageDialog=no
 OutputDir=..\dist\installer
 OutputBaseFilename=StillSetup-{#MyAppVersion}
 SetupIconFile=..\src\Still.App\Assets\still.ico
@@ -25,9 +30,9 @@ PrivilegesRequiredOverridesAllowed=commandline
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
-CloseApplications=no
+CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=0.2.0.0
+VersionInfoVersion=0.2.1.0
 VersionInfoProductName={#MyAppName}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Still - Fokus-App fuer Windows
@@ -48,9 +53,16 @@ Name: "{autodesktop}\Still"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{ap
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Parameters: "--cleanup-hosts"; Flags: runhidden waituntilterminated; StatusMsg: "Alte Website-Sperre wird entfernt ..."
+Filename: "{app}\{#MyAppExeName}"; Flags: nowait runasoriginaluser; Check: ShouldRestartAfterUpdate
 Filename: "{app}\{#MyAppExeName}"; Description: "Still jetzt starten"; Flags: nowait postinstall skipifsilent
 
 [Code]
+function ShouldRestartAfterUpdate: Boolean;
+begin
+  { Silent updates pass /RESTARTSTILL=1. Normal setups use the postinstall entry. }
+  Result := WizardSilent and (ExpandConstant('{param:RESTARTSTILL|0}') = '1');
+end;
+
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 var
   ResultCode: Integer;

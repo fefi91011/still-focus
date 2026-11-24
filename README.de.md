@@ -4,7 +4,7 @@
 
 Still ist eine leichte Fokus-App für Windows. Sie sperrt Programme und Websites, verbindet Zeitpläne mit Tageslimits, macht Aufgaben zu Zeitbelohnungen und lässt sich durch Menschen absichern, statt durch einen Account auf einem Server.
 
-> **Status 0.2.0.** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Website-Sperren laufen jetzt über die mitgelieferte Browser-Erweiterung; die hosts-Datei wird nur noch beim Update von älteren Versionen bereinigt. Installer, Overlay, Kontakt, Nachfrist und die Extension-Brücke wurden lokal geprüft. Scheduled Tasks brauchen noch eine breitere Prüfung mit Administratorrechten. Die Oberfläche ist deutsch; die Dokumentation ist englisch.
+> **Status 0.2.1 (Quellcode auf `main`, Installer noch nicht veröffentlicht).** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Website-Sperren laufen jetzt über die mitgelieferte Browser-Erweiterung; die hosts-Datei wird nur noch beim Update von älteren Versionen bereinigt. Installer, Overlay, Kontakt, Nachfrist und die Extension-Brücke wurden lokal geprüft. Scheduled Tasks brauchen noch eine breitere Prüfung mit Administratorrechten. Die Oberfläche ist deutsch; die Dokumentation ist englisch.
 
 ![Still – Heute](docs/screenshots/01-heute.png)
 
@@ -14,7 +14,7 @@ Still ist eine leichte Fokus-App für Windows. Sie sperrt Programme und Websites
 | --- | --- |
 | **Regeln** | Programme und Websites blockieren – dauerhaft oder an ausgewählten Wochentagen in Zeitfenstern. Programme können direkt aus dem Programme-Ordner gewählt werden; der Prozessname bleibt als manuelle Option erhalten. Ein Tageslimit ist optional. |
 | **Limits & Nachfrist** | Nutzung wird sekundengenau im Vordergrund gezählt. Bei erreichtem Limit gibt es pro Regel eine konfigurierbare Nachfrist (standardmäßig 5 Minuten, begrenzt pro Tag) – der klassische „+5 Minuten“-Knopf. |
-| **Nutzung** | Pro Regel wird verbrauchte und verbleibende Zeit angezeigt, dazu die Bildschirmzeit des Tages. Bildschirmzeit zählt, solange irgendeine App im Vordergrund ist. |
+| **Nutzung** | Pro Regel wird verbrauchte und verbleibende Zeit angezeigt, dazu die Bildschirmzeit des Tages. Die Heute-Seite zeigt die Apps und Websites aus aktiven Regeln mit Icons. Bildschirmzeit zählt, solange irgendeine App im Vordergrund ist. |
 | **App-Zeit** | Zusätzlich wird die Vordergrundzeit pro App lokal für heute und die letzten sieben Tage erfasst – unabhängig von Regeln und Tageslimits. Die Summe ist über den Startscreen und die Statistik sichtbar; Browser werden pro Prozess zusammengefasst, nicht pro Tab. |
 | **Ausnahmen** | Globale Whitelists mit eigenem Zeitfenster. Sie überschreiben alle Regeln und zählen nicht ins Budget. |
 | **Fokus-Timer** | Pomodoro-Timer im Stil von „Pandora“: Arbeitsphasen sperren alle Ziele deiner Regeln, Pausen heben nur die Timer-Sperre auf. Zeitpläne bleiben in Pausen aktiv. |
@@ -55,7 +55,7 @@ dotnet run --project src/Still.App
 
 ## Windows installieren (für Kunden)
 
-Der fertige Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.2.0.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes.
+Der zuletzt veröffentlichte Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.2.0.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes. Ein 0.2.1-Build mit dem stillen In-Place-Updater ist lokal vorbereitet und noch nicht veröffentlicht.
 
 Installer lokal bauen:
 
@@ -63,9 +63,11 @@ Installer lokal bauen:
 powershell -ExecutionPolicy Bypass -File scripts/build-installer.ps1
 ```
 
-Ergebnis: `dist\installer\StillSetup-0.2.0.exe`. Der Kunde muss nur diese Datei doppelklicken und den Assistenten bestätigen. Die .NET-Runtime ist enthalten, es muss nichts zusätzlich installiert werden.
+Ergebnis: `dist\installer\StillSetup-0.2.1.exe`. Bei einer Erstinstallation doppelklickt der Kunde die Datei und bestätigt den Assistenten. Die .NET-Runtime ist enthalten, es muss nichts zusätzlich installiert werden.
 
 Der Installer läuft weiterhin mit Administratorrechten, damit er nach `Program Files` schreiben und hosts-Einträge älterer Versionen entfernen kann. Programm- und Website-Sperren brauchen im Alltag keine Administratorrechte mehr; der Browser-Schutz läuft über die Erweiterung. Der Installer legt Startmenü- und optional Desktop-Verknüpfungen an und startet Still nach der Installation.
+
+Updates laufen ohne Assistent: Still prüft höchstens einmal pro Tag die neueste GitHub-Version, lädt sie in der App herunter und startet das Setup still. Es behält dieselbe AppId und denselben Zielordner, überschreibt also die vorhandene Installation, statt eine zweite anzulegen. Sprach-, Zielordner- und Komponentenauswahl entfallen; Still startet danach neu. Windows kann einmalig nach Administratorrechten fragen, weil nach `Program Files` geschrieben wird. Auch ein manuell gestartetes Setup verwendet den bisherigen Installationsordner weiter und aktualisiert Verknüpfungen und den Eintrag unter „Installierte Apps“, statt sie zu duplizieren.
 
 Deinstallieren: **Einstellungen → Apps → Installierte Apps → Still → Deinstallieren**. Vorher Still über das Tray-Menü beenden. Der Deinstaller entfernt alte hosts-Einträge und den Autostart; die Browser-Erweiterung wird im Browser selbst entfernt.
 
@@ -151,7 +153,7 @@ Alles bleibt lokal:
 - Demo: `%TEMP%\still-demo`
 - Override: Umgebungsvariable `STILL_DATA_DIR`
 
-Es gibt keine Verbindung ins Internet, keine Telemetrie und keinen Sync. Die optionale Browser-Extension spricht die App ausschließlich über die Loopback-Adresse `127.0.0.1` an. Freigabecodes werden mit PBKDF2-SHA256 (120.000 Iterationen, zufälliges Salt) gespeichert; der Klartext wird nie persistiert.
+Still selbst kontaktiert nur GitHub für die Update-Prüfung und den Update-Download. Für eine Website in einer Regel kann Still das Icon direkt bei der jeweiligen Seite anfragen (zum Beispiel `/favicon.ico`); Icons gehen nie an einen Drittanbieter. Es gibt keine Telemetrie und keinen Sync. Die optionale Browser-Extension spricht die App ausschließlich über die Loopback-Adresse `127.0.0.1` an. Freigabecodes werden mit PBKDF2-SHA256 (120.000 Iterationen, zufälliges Salt) gespeichert; der Klartext wird nie persistiert.
 
 ## Grenzen, bewusst und ehrlich
 
@@ -210,7 +212,7 @@ Unter Linux benötigt der Renderer Skia-NativeAssets und eine Font-Konfiguration
 
 ## Was noch fehlt
 
-- Code-Signierung und automatische Updates für eine echte Verteilung.
+- Code-Signierung und eine breitere Update-Testmatrix für eine echte Verteilung.
 - Veröffentlichung der Erweiterung in Chrome Web Store, Edge Add-ons und addons.mozilla.org; erst damit ist eine stille oder dauerhafte Installation ohne Entwicklermodus möglich.
 - Ein Windows-Durchlauf mit Administratorrechten für Scheduled Tasks und den Installer auf einem frischen System.
 - Import/Export und ein optionaler Passwort-Reset-Weg für Kontakte.

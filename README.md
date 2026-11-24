@@ -6,7 +6,7 @@ Still blocks distracting apps and websites, ties schedules to daily limits, turn
 
 ![Still dashboard](docs/screenshots/01-heute.png)
 
-> **Status: 0.2.0.** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. Website blocking now runs through the bundled browser extension; the hosts file is only cleaned up on upgrades from older versions. The Windows installer, full-screen app overlay, contact action, grace action and extension bridge have been exercised locally. Scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
+> **Status: 0.2.1 (source on `main`; installer not published yet).** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. Website blocking now runs through the bundled browser extension; the hosts file is only cleaned up on upgrades from older versions. The Windows installer, full-screen app overlay, contact action, grace action and extension bridge have been exercised locally. Scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
 
 [Deutsche README](README.de.md)
 
@@ -24,7 +24,7 @@ Still blocks distracting apps and websites, ties schedules to daily limits, turn
 | --- | --- |
 | **Rules** | Block apps and websites permanently or during selected weekly time windows. Apps can be picked directly from the installed-programs list, or entered by process name. A daily limit is optional. |
 | **Limits & grace** | Foreground usage is counted per rule. When a limit is reached, each rule can offer a configurable grace period (5 minutes by default), capped per day. |
-| **Usage** | Shows used and remaining time per rule, plus total screen time and per-app foreground time for today and the last seven days. Browsers are grouped by process, not by tab. |
+| **Usage** | Shows used and remaining time per rule, plus total screen time and per-app foreground time for today and the last seven days. The Today page lists the apps and websites from active rules with icons. Browsers are grouped by process, not by tab. |
 | **Allowances** | Global allowlists with their own time window. They override rules and do not consume the rule budget. |
 | **Focus timer** | A Pomodoro-style timer. Work phases block the targets of your rules; breaks only release the timer lock. Schedules remain active during breaks. |
 | **Tasks** | Finished tasks earn bonus time for one rule or every rule with a daily limit. Optional reflection note and a daily completion cap. |
@@ -98,7 +98,7 @@ dotnet run --project src/Still.App
 
 ## Install on Windows
 
-The ready-to-run installer is published in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.2.0.exe` and run it. The release notes include the SHA-256 checksum.
+The latest published installer is in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.2.0.exe` and run it. The release notes include the SHA-256 checksum. A 0.2.1 build with the silent in-place updater is prepared locally and has not been published yet.
 
 To build the installer locally:
 
@@ -106,9 +106,9 @@ To build the installer locally:
 powershell -ExecutionPolicy Bypass -File scripts/build-installer.ps1
 ```
 
-The result is `dist\installer\StillSetup-0.2.0.exe`. It is self-contained, so the .NET runtime does not need to be installed separately.
+The result is `dist\installer\StillSetup-0.2.1.exe`. It is self-contained, so the .NET runtime does not need to be installed separately.
 
-The installer still runs elevated so it can install into Program Files and remove hosts entries left by older Still versions. App blocking and website blocking at runtime do not need administrator rights; website blocking uses the browser extension. The installer creates Start menu and optional desktop shortcuts and starts Still after installation. It is currently unsigned, so Windows SmartScreen may warn. A code-signing certificate is required for frictionless public distribution.
+The installer still runs elevated so it can install into Program Files and remove hosts entries left by older Still versions. App blocking and website blocking at runtime do not need administrator rights; website blocking uses the browser extension. The installer creates Start menu and optional desktop shortcuts and starts Still after installation. A fresh install shows the normal assistant; updates do not. Still checks GitHub at most once per day, downloads a newer release in the app and runs the setup silently. The setup keeps the existing AppId and install directory, so it overwrites the current installation instead of creating a second one. Language, destination and component prompts are skipped, and Still restarts afterwards. Windows may still ask once for administrator rights because the app lives in Program Files. A manually started setup also reuses the previous install directory and updates the shortcuts and the uninstall entry rather than duplicating them. It is currently unsigned, so Windows SmartScreen may warn. A code-signing certificate is required for frictionless public distribution.
 
 To uninstall, quit Still from the tray first, then use **Settings → Apps → Installed apps → Still → Uninstall**. The uninstaller removes old hosts entries and the autostart tasks. Remove the browser extension separately in the browser's extension page.
 
@@ -168,7 +168,7 @@ Everything stays local:
 - **Demo:** `%TEMP%\still-demo`
 - **Override:** set `STILL_DATA_DIR` to use another folder.
 
-There is no internet connection, telemetry, or sync. The optional extension communicates only over loopback. Approver codes are stored as PBKDF2-SHA256 hashes (120,000 iterations, random salt); the plaintext is never persisted.
+Still itself only contacts GitHub for the update check and update download. For a website in a rule, it may request that site's icon directly from the site (for example `/favicon.ico`); icons are never sent to a third-party service. There is no telemetry or sync. The optional extension communicates only over loopback. Approver codes are stored as PBKDF2-SHA256 hashes (120,000 iterations, random salt); the plaintext is never persisted.
 
 ## Architecture
 

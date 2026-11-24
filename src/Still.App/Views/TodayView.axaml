@@ -228,6 +228,31 @@
       </StackPanel>
     </Border>
 
+    <Border Classes="card">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock Text="Website-Zeit" Classes="h3" />
+            <TextBlock Text="Aktive HTTP(S)-Tabs im fokussierten Browserfenster – auch ohne Regel oder Tageslimit. Die Erweiterung meldet nur Domain und Dauer, alles bleibt lokal."
+                       Classes="dim"
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       MaxWidth="620"
+                       HorizontalAlignment="Left" />
+          </StackPanel>
+          <Button Grid.Column="1"
+                  Classes="subtle small"
+                  Content="Statistik"
+                  Command="{Binding OpenStatsCommand}" />
+        </Grid>
+
+        <Grid ColumnDefinitions="*,*">
+          <controls:WebsiteUsageSection DataContext="{Binding WebsitesToday}" Margin="0,0,20,0" />
+          <controls:WebsiteUsageSection Grid.Column="1" DataContext="{Binding WebsitesWeek}" Margin="20,0,0,0" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
     <Grid ColumnDefinitions="1.4*,*">
       <Border Classes="card" Margin="0,0,8,0">
         <StackPanel Spacing="11">

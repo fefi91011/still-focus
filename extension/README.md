@@ -11,6 +11,17 @@ It asks the running Still app at `http://127.0.0.1:47821` for the current rules 
 
 The toolbar popup shows whether Still is connected, how many website rules are active and when the list was last refreshed. A badge on the toolbar icon shows the current number of blocked domains.
 
+## Website time
+
+The extension also measures how long the active website is in use, whether or not the site has a rule. Every minute, when the active tab changes and when browser focus changes, it sends the domain, the local calendar date and the elapsed seconds to Still over the same loopback bridge. The app aggregates this locally by day and host and shows it as **Website-Zeit** on the Today and Statistics pages.
+
+- Only `http://` and `https://` tabs in the focused, normal browser window count. Extension pages, the Still block page and internal browser pages are ignored.
+- Only the hostname, the local date and the duration are sent, never the full URL, page title or content.
+- Sessions that cross local midnight are split into one report per day, so offline reports keep the day on which the time was actually spent even when Still was closed for several days.
+- Reports are queued in `storage.local` while Still is closed and sent after the app is reachable again. A report is only removed after the app acknowledges it.
+- Focusing another application or minimizing the browser pauses the timer. Idle detection and the operating-system lock screen are not tracked.
+- The counter starts with the loaded extension. It does not reconstruct time from before installation.
+
 ## Supported browsers
 
 Both packages use the same WebExtension source with Manifest V3. Any current browser based on Chromium or Gecko should work.
@@ -79,4 +90,6 @@ That is why Still uses the safe one-time setup flow. After the one-time load, th
 - The blocked browser app is not terminated automatically. **Close tab** or **×** closes only the tab.
 - The extension is not DRM: it can be disabled or removed in the browser.
 - After a grace period, the block list is refreshed in the background before the original page is loaded again.
+- Website time is measured in one-minute intervals and on tab/focus changes, so short visits can be rounded. Only the active tab in the focused window counts; split-screen or multiple visible windows are not summed.
+- Pending website time keeps its original local date in extension storage until Still confirms receipt. It is not sent anywhere else.
 - The extension UI currently shares the German labels used by the desktop app. The repository documentation is in English.

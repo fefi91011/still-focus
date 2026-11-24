@@ -852,6 +852,79 @@ public sealed class StillRuntime : IDisposable
     }
 
     /// <summary>
+    /// Returns a copy of the website usage so the UI can enumerate it safely
+    /// while extension reports arrive on the bridge thread.
+    /// </summary>
+    public IReadOnlyList<WebsiteUsageEntry> GetWebsiteUsageSnapshot()
+    {
+        lock (_gate)
+        {
+            return _state.WebsiteUsage
+                .Select(entry => new WebsiteUsageEntry
+                {
+                    Host = entry.Host,
+                    Date = entry.Date,
+                    UsedSeconds = entry.UsedSeconds
+                })
+                .ToList();
+        }
+    }
+
+    /// <summary>
+    /// Adds active website time reported by the browser extension. Each report
+    /// carries its local calendar date so queued reports survive midnight and
+    /// days when the app was closed. This is not a user edit; it only updates
+    /// the local usage history.
+    /// </summary>
+    public void RecordWebsiteUsage(IEnumerable<WebsiteUsageReport> reports)
+    {
+        var normalized = reports
+            .Select(report => (
+                report.Date,
+                Host: Target.NormalizeHost(report.Host),
+                Seconds: report.Seconds))
+            .Where(report => report.Host.Length > 0 && report.Seconds > 0)
+            .Select(report => (
+                report.Date,
+                report.Host,
+                Seconds: Math.Clamp(report.Seconds, 1, 86_400)))
+            .ToList();
+
+        if (normalized.Count == 0)
+        {
+            return;
+        }
+
+        lock (_gate)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            foreach (var report in normalized)
+            {
+                var entry = _state.WebsiteUsage.FirstOrDefault(usage =>
+                    usage.Date == report.Date
+                    && usage.Host.Equals(report.Host, StringComparison.OrdinalIgnoreCase));
+                if (entry is null)
+                {
+                    entry = new WebsiteUsageEntry
+                    {
+                        Date = report.Date,
+                        Host = report.Host
+                    };
+                    _state.WebsiteUsage.Add(entry);
+                }
+
+                entry.UsedSeconds = Math.Min(int.MaxValue, entry.UsedSeconds + report.Seconds);
+            }
+
+            SaveLocked();
+        }
+    }
+
+    /// <summary>
     /// Remembers when the update check last ran. This is not a user edit, so it
     /// neither needs an approval code nor touches any rules.
     /// </summary>

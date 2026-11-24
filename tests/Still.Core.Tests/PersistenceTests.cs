@@ -39,6 +39,12 @@ public sealed class PersistenceTests
                 ProcessName = "chrome",
                 UsedSeconds = 120
             });
+            state.WebsiteUsage.Add(new WebsiteUsageEntry
+            {
+                Date = DateOnly.FromDateTime(DateTime.Today),
+                Host = "youtube.com",
+                UsedSeconds = 240
+            });
             state.Normalize();
 
             store.Save(state);
@@ -55,6 +61,9 @@ public sealed class PersistenceTests
             Assert.Single(loaded.AppUsage);
             Assert.Equal("chrome", loaded.AppUsage[0].ProcessName);
             Assert.Equal(120, loaded.AppUsage[0].UsedSeconds);
+            Assert.Single(loaded.WebsiteUsage);
+            Assert.Equal("youtube.com", loaded.WebsiteUsage[0].Host);
+            Assert.Equal(240, loaded.WebsiteUsage[0].UsedSeconds);
         }
         finally
         {
@@ -125,6 +134,13 @@ public sealed class PersistenceTests
             [
                 new AppUsageEntry { Date = DateOnly.FromDateTime(DateTime.Today), ProcessName = "chrome.exe", UsedSeconds = 60 },
                 new AppUsageEntry { Date = DateOnly.FromDateTime(DateTime.Today), ProcessName = "chrome", UsedSeconds = 120 }
+            ],
+            WebsiteUsage =
+            [
+                new WebsiteUsageEntry { Date = DateOnly.FromDateTime(DateTime.Today), Host = "WWW.YouTube.com", UsedSeconds = 60 },
+                new WebsiteUsageEntry { Date = DateOnly.FromDateTime(DateTime.Today), Host = "youtube.com", UsedSeconds = 120 },
+                new WebsiteUsageEntry { Date = DateOnly.FromDateTime(DateTime.Today), Host = " ", UsedSeconds = 90 },
+                new WebsiteUsageEntry { Date = DateOnly.FromDateTime(DateTime.Today), Host = "reddit.com", UsedSeconds = 0 }
             ]
         };
 
@@ -139,5 +155,8 @@ public sealed class PersistenceTests
         Assert.Single(state.AppUsage);
         Assert.Equal("chrome", state.AppUsage[0].ProcessName);
         Assert.Equal(180, state.AppUsage[0].UsedSeconds);
+        Assert.Single(state.WebsiteUsage);
+        Assert.Equal("youtube.com", state.WebsiteUsage[0].Host);
+        Assert.Equal(180, state.WebsiteUsage[0].UsedSeconds);
     }
 }

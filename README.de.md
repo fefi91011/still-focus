@@ -4,7 +4,7 @@
 
 Still ist eine leichte Fokus-App für Windows. Sie sperrt Programme und Websites, verbindet Zeitpläne mit Tageslimits, macht Aufgaben zu Zeitbelohnungen und lässt sich durch Menschen absichern, statt durch einen Account auf einem Server.
 
-> **Status 0.2.1.** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Website-Sperren laufen jetzt über die mitgelieferte Browser-Erweiterung; die hosts-Datei wird nur noch beim Update von älteren Versionen bereinigt. Installer, Overlay, Kontakt, Nachfrist und die Extension-Brücke wurden lokal geprüft. Scheduled Tasks brauchen noch eine breitere Prüfung mit Administratorrechten. Die Oberfläche ist deutsch; die Dokumentation ist englisch.
+> **Status 0.2.2.** Windows zuerst. Die Oberfläche und der Core laufen auch unter Linux/macOS; dort ist das Sperren bewusst nur simuliert. Website-Sperren laufen jetzt über die mitgelieferte Browser-Erweiterung; die hosts-Datei wird nur noch beim Update von älteren Versionen bereinigt. Installer, Overlay, Kontakt, Nachfrist und die Extension-Brücke wurden lokal geprüft. Scheduled Tasks brauchen noch eine breitere Prüfung mit Administratorrechten. Die Oberfläche ist deutsch; die Dokumentation ist englisch.
 
 ![Still – Heute](docs/screenshots/01-heute.png)
 
@@ -16,6 +16,7 @@ Still ist eine leichte Fokus-App für Windows. Sie sperrt Programme und Websites
 | **Limits & Nachfrist** | Nutzung wird sekundengenau im Vordergrund gezählt. Bei erreichtem Limit gibt es pro Regel eine konfigurierbare Nachfrist (standardmäßig 5 Minuten, begrenzt pro Tag) – der klassische „+5 Minuten“-Knopf. |
 | **Nutzung** | Pro Regel wird verbrauchte und verbleibende Zeit angezeigt, dazu die Bildschirmzeit des Tages. Die Heute-Seite zeigt die Apps und Websites aus aktiven Regeln mit Icons. Bildschirmzeit zählt, solange irgendeine App im Vordergrund ist. |
 | **App-Zeit** | Zusätzlich wird die Vordergrundzeit pro App lokal für heute und die letzten sieben Tage erfasst – unabhängig von Regeln und Tageslimits. Die Summe ist über den Startscreen und die Statistik sichtbar; Browser werden pro Prozess zusammengefasst, nicht pro Tab. |
+| **Website-Zeit** | Die Browser-Erweiterung meldet die aktive Website (nur Domain, keine vollständige URL), das lokale Datum und ihre Dauer an Still – auch für Seiten ohne Regel. Offline-Berichte behalten ihren tatsächlichen Tag, auch über Mitternacht. Heute und die letzten sieben Tage stehen auf der Heute- und Statistikseite. |
 | **Ausnahmen** | Globale Whitelists mit eigenem Zeitfenster. Sie überschreiben alle Regeln und zählen nicht ins Budget. |
 | **Fokus-Timer** | Pomodoro-Timer im Stil von „Pandora“: Arbeitsphasen sperren alle Ziele deiner Regeln, Pausen heben nur die Timer-Sperre auf. Zeitpläne bleiben in Pausen aktiv. |
 | **Aufgaben** | Aufgaben bringen Bonuszeit für eine Regel oder alle Regeln mit Tageslimit. Optional mit kurzer Notiz als Nachweis. Maximalzahl pro Tag pro Aufgabe. |
@@ -55,7 +56,7 @@ dotnet run --project src/Still.App
 
 ## Windows installieren (für Kunden)
 
-Der zuletzt veröffentlichte Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.2.1.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes.
+Der zuletzt veröffentlichte Installer liegt unter [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Lade `StillSetup-0.2.2.exe` herunter und starte sie. Die SHA-256-Prüfsumme steht in den Release-Notes.
 
 Installer lokal bauen:
 
@@ -63,7 +64,7 @@ Installer lokal bauen:
 powershell -ExecutionPolicy Bypass -File scripts/build-installer.ps1
 ```
 
-Ergebnis: `dist\installer\StillSetup-0.2.1.exe`. Bei einer Erstinstallation doppelklickt der Kunde die Datei und bestätigt den Assistenten. Die .NET-Runtime ist enthalten, es muss nichts zusätzlich installiert werden.
+Ergebnis: `dist\installer\StillSetup-0.2.2.exe`. Bei einer Erstinstallation doppelklickt der Kunde die Datei und bestätigt den Assistenten. Die .NET-Runtime ist enthalten, es muss nichts zusätzlich installiert werden.
 
 Der Installer läuft weiterhin mit Administratorrechten, damit er nach `Program Files` schreiben und hosts-Einträge älterer Versionen entfernen kann. Programm- und Website-Sperren brauchen im Alltag keine Administratorrechte mehr; der Browser-Schutz läuft über die Erweiterung. Der Installer legt Startmenü- und optional Desktop-Verknüpfungen an und startet Still nach der Installation.
 
@@ -150,10 +151,11 @@ Alles bleibt lokal:
   - `still.log` bei Fehlern
   - vorbereitete Erweiterungsdateien unter `browser-extension\`
   - App-Zeit wird in `state.json` nur lokal und pro Prozess/Tag gespeichert
+  - Website-Zeit wird in `state.json` nur lokal als Domain und Dauer pro Tag gespeichert
 - Demo: `%TEMP%\still-demo`
 - Override: Umgebungsvariable `STILL_DATA_DIR`
 
-Still selbst kontaktiert nur GitHub für die Update-Prüfung und den Update-Download. Für eine Website in einer Regel kann Still das Icon direkt bei der jeweiligen Seite anfragen (zum Beispiel `/favicon.ico`); Icons gehen nie an einen Drittanbieter. Es gibt keine Telemetrie und keinen Sync. Die optionale Browser-Extension spricht die App ausschließlich über die Loopback-Adresse `127.0.0.1` an. Freigabecodes werden mit PBKDF2-SHA256 (120.000 Iterationen, zufälliges Salt) gespeichert; der Klartext wird nie persistiert.
+Still selbst kontaktiert nur GitHub für die Update-Prüfung und den Update-Download. Für eine Website in einer Regel kann Still das Icon direkt bei der jeweiligen Seite anfragen (zum Beispiel `/favicon.ico`); Icons gehen nie an einen Drittanbieter. Es gibt keine Telemetrie und keinen Sync. Die optionale Browser-Extension spricht die App ausschließlich über die Loopback-Adresse `127.0.0.1` an und meldet nur Domain und aktive Dauer, nie die vollständige Adresse oder Seiteninhalte. Freigabecodes werden mit PBKDF2-SHA256 (120.000 Iterationen, zufälliges Salt) gespeichert; der Klartext wird nie persistiert.
 
 ## Grenzen, bewusst und ehrlich
 
@@ -161,7 +163,7 @@ Still selbst kontaktiert nur GitHub für die Update-Prüfung und den Update-Down
 - **Kein hosts-Fallback mehr.** Still entfernt hosts-Einträge älterer Versionen beim Update und bei der Deinstallation. Neue Website-Sperren laufen immer über die Erweiterung.
 - **Keine stille Extension-Installation auf normalen Browsern.** Chromium braucht Store- oder Enterprise-Verteilung, Firefox eine von Mozilla signierte XPI.
 - **Programm-Sperre** pollt etwa einmal pro Sekunde und zeigt ein Vollbild-Overlay über dem Bildschirm. Die blockierte App wird nicht mehr automatisch beendet; sie lässt sich nur über „App schließen“ schließen. Geschützte Systemprozesse werden nie angefasst.
-- **Nutzungszeit** wird pro Regel über Vordergrundprozesse erfasst. Website-Nutzung wird über den Vordergrund-Browser angenähert, nicht pro Tab gemessen.
+- **Nutzungszeit** wird pro Regel über Vordergrundprozesse erfasst. Die Website-Zeit kommt von der Erweiterung und zählt nur den aktiven HTTP(S)-Tab im fokussierten Browserfenster. Leerlauf, Sperrbildschirm oder ein minimiertes Browserfenster werden nicht erkannt. Ohne geladene Erweiterung wird keine Website-Zeit erfasst; ist Still geschlossen, sammelt die Erweiterung weiter und meldet die Zeit mit ihrem ursprünglichen lokalen Datum nach dem nächsten Start.
 - **Bildschirmzeit** zählt jede Vordergrund-App, solange Still läuft. Zusätzlich wird die Vordergrundzeit pro Prozess lokal für heute und die letzten sieben Tage gespeichert; Browser werden dabei pro Prozess, nicht pro Tab zusammengefasst. Leerlauf oder der Sperrbildschirm können in der Gesamtzeit mitzählen. Bei geschlossenem Still wird nichts erfasst.
 - **Cold Turkey** kann von einem Administrator mit Task-Manager-Gewalt beendet werden. Still verhindert das nicht mit einem Kernel-Treiber. Der Watchdog startet die App bei fehlendem Heartbeat neu. Die Erweiterung kann im Browser entfernt werden. Das ist die bewusste v1-Grenze: stark, aber kein DRM.
 - **Vorzeitige Freigabe** ist optional und doppelt abgesichert: Sie muss in den Einstellungen aktiviert sein, und es braucht eine Freigabeperson mit Code. Ist sie aus, gibt es in der Oberfläche keinen Ausstieg. Die freigebende Kontaktperson lässt sich während der Sperre weder löschen noch ändern.
@@ -177,7 +179,7 @@ src/
   Still.App/        Avalonia 11 UI, Tray, Vollbild-Blockierfenster, Extension-Einrichtung
   Still.Watchdog/   startet die App neu, wenn der Heartbeat fehlt
 tests/
-  Still.Core.Tests/ 48 Tests für Engine, App-Zeitmessung, Zeitpläne, Limits,
+  Still.Core.Tests/ 49 Tests für Engine, App- und Website-Zeitmessung, Zeitpläne, Limits,
                    Freigaben, Persistenz und die Bereinigung alter hosts-Einträge
 extension/          Chromium/Firefox-WebExtension mit lokaler Still-Blockseite
 tools/

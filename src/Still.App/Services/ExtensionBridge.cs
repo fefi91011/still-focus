@@ -1,6 +1,9 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using Avalonia.Threading;
+using Still.Core.Models;
 using Still.Core.Runtime;
 
 namespace Still.App.Services;
@@ -253,6 +256,50 @@ public sealed class ExtensionBridge : IDisposable
                     return;
                 }
 
+                case "/v1/website-usage":
+                {
+                    var parsed = await ReadJsonAsync<WebsiteUsageRequest>(request);
+                    var reports = new List<WebsiteUsageReport>();
+                    if (parsed?.Entries is { Count: > 0 })
+                    {
+                        reports.AddRange(parsed.Entries
+                            .Take(200)
+                            .Where(entry => !string.IsNullOrWhiteSpace(entry.Host) && entry.Seconds > 0)
+                            .Select(entry => new WebsiteUsageReport(
+                                ReadUsageDate(entry.Date),
+                                entry.Host!,
+                                entry.Seconds)));
+                    }
+                    else if (!string.IsNullOrWhiteSpace(parsed?.Host) && parsed.Seconds > 0)
+                    {
+                        reports.Add(new WebsiteUsageReport(
+                            ReadUsageDate(parsed.Date),
+                            parsed.Host!,
+                            parsed.Seconds));
+                    }
+
+                    if (reports.Count == 0)
+                    {
+                        await WriteJsonAsync(response, 400, new { ok = false, message = "Website-Zeit fehlt." });
+                        return;
+                    }
+
+                    // The runtime and its save-normalization are normally
+                    // driven by the UI thread. Keep bridge reports on that same
+                    // thread so a save cannot mutate lists while the UI reads them.
+                    if (Dispatcher.UIThread.CheckAccess())
+                    {
+                        _runtime.RecordWebsiteUsage(reports);
+                    }
+                    else
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() => _runtime.RecordWebsiteUsage(reports));
+                    }
+
+                    await WriteJsonAsync(response, 200, new { ok = true });
+                    return;
+                }
+
                 case "/v1/open":
                     _openApp();
                     await WriteJsonAsync(response, 200, new { ok = true });
@@ -296,6 +343,18 @@ public sealed class ExtensionBridge : IDisposable
             {
             }
         }
+    }
+
+    private static DateOnly ReadUsageDate(string? value)
+    {
+        return DateOnly.TryParseExact(
+            value,
+            "yyyy-MM-dd",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var date)
+            ? date
+            : DateOnly.FromDateTime(DateTime.Now);
     }
 
     private static string? ReadHost(HttpListenerRequest request, string? fallback = null)
@@ -403,6 +462,13 @@ public sealed class ExtensionBridge : IDisposable
 
     private sealed record GraceRequest(Guid RuleId, string? Host);
     private sealed record HelloRequest(string? Version, string? Browser, string? UserAgent);
+    private sealed record WebsiteUsageRequest(
+        string? Host,
+        int Seconds,
+        string? Date,
+        List<WebsiteUsageItem>? Entries);
+
+    private sealed record WebsiteUsageItem(string? Host, int Seconds, string? Date);
 }
 
 public sealed record ExtensionClient(

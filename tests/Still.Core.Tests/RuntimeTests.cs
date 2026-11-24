@@ -252,4 +252,36 @@ public sealed class RuntimeTests
         Assert.True(runtime.EndLockdownEarly("ruhig-wald").Ok);
         Assert.True(runtime.DeleteContact(anna.Id, approved: true).Ok);
     }
+
+    [Fact]
+    public void Website_Usage_Accumulates_Per_Host_And_Reported_Day()
+    {
+        var clock = new FakeClock(TestTime.Local(2026, 3, 2, 10, 0));
+        var today = DateOnly.FromDateTime(clock.Now.LocalDateTime);
+        var yesterday = today.AddDays(-1);
+        var state = new AppState();
+        state.Normalize();
+
+        using var runtime = new StillRuntime(
+            state, new MemoryStore(TempDir()), new FakePlatform(), clock);
+        runtime.Initialize();
+
+        runtime.RecordWebsiteUsage(
+        [
+            new WebsiteUsageReport(today, "WWW.YouTube.com", 60),
+            new WebsiteUsageReport(today, "youtube.com", 30),
+            new WebsiteUsageReport(yesterday, "youtube.com", 45),
+            new WebsiteUsageReport(today, " ", 10),
+            new WebsiteUsageReport(today, "reddit.com", 0)
+        ]);
+        runtime.RecordWebsiteUsage([new WebsiteUsageReport(yesterday, "reddit.com", 5)]);
+
+        var snapshot = runtime.GetWebsiteUsageSnapshot();
+        Assert.Equal(3, snapshot.Count);
+        var youtubeToday = snapshot.Single(entry => entry.Host == "youtube.com" && entry.Date == today);
+        Assert.Equal(90, youtubeToday.UsedSeconds);
+        var youtubeYesterday = snapshot.Single(entry => entry.Host == "youtube.com" && entry.Date == yesterday);
+        Assert.Equal(45, youtubeYesterday.UsedSeconds);
+        Assert.Equal(5, snapshot.Single(entry => entry.Host == "reddit.com" && entry.Date == yesterday).UsedSeconds);
+    }
 }

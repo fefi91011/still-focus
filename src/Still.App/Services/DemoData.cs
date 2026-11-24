@@ -247,6 +247,7 @@ public static class DemoData
             ],
             Days = BuildDays(today, now),
             AppUsage = BuildAppUsage(today),
+            WebsiteUsage = BuildWebsiteUsage(today),
             Settings = new StillSettings
             {
                 CloseToTray = true,
@@ -331,6 +332,49 @@ public static class DemoData
     {
         Date = date,
         ProcessName = process,
+        UsedSeconds = minutes * 60
+    };
+
+    private static List<WebsiteUsageEntry> BuildWebsiteUsage(DateOnly today)
+    {
+        return
+        [
+            Website(today.AddDays(-6), "youtube.com", 32),
+            Website(today.AddDays(-6), "github.com", 24),
+            Website(today.AddDays(-6), "reddit.com", 18),
+            Website(today.AddDays(-6), "x.com", 12),
+
+            Website(today.AddDays(-5), "youtube.com", 41),
+            Website(today.AddDays(-5), "github.com", 35),
+            Website(today.AddDays(-5), "reddit.com", 22),
+            Website(today.AddDays(-5), "nzz.ch", 14),
+
+            Website(today.AddDays(-4), "youtube.com", 18),
+            Website(today.AddDays(-4), "github.com", 28),
+            Website(today.AddDays(-4), "instagram.com", 9),
+            Website(today.AddDays(-4), "tiktok.com", 7),
+
+            Website(today.AddDays(-2), "youtube.com", 36),
+            Website(today.AddDays(-2), "github.com", 31),
+            Website(today.AddDays(-2), "reddit.com", 16),
+            Website(today.AddDays(-2), "spiegel.de", 11),
+
+            Website(today.AddDays(-1), "youtube.com", 22),
+            Website(today.AddDays(-1), "github.com", 20),
+            Website(today.AddDays(-1), "reddit.com", 8),
+            Website(today.AddDays(-1), "nzz.ch", 9),
+
+            Website(today, "youtube.com", 12),
+            Website(today, "github.com", 10),
+            Website(today, "reddit.com", 8),
+            Website(today, "x.com", 5)
+        ];
+    }
+
+    private static WebsiteUsageEntry Website(DateOnly date, string host, int minutes) => new()
+    {
+        Date = date,
+        Host = host,
         UsedSeconds = minutes * 60
     };
 

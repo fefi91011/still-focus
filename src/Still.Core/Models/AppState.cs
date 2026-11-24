@@ -41,6 +41,17 @@ public sealed class AppUsageEntry
     public int UsedSeconds { get; set; }
 }
 
+/// <summary>Active website time reported by the browser extension, independent of rules.</summary>
+public sealed class WebsiteUsageEntry
+{
+    public string Host { get; set; } = string.Empty;
+    public DateOnly Date { get; set; }
+    public int UsedSeconds { get; set; }
+}
+
+/// <summary>One website-time segment for a specific local calendar day.</summary>
+public readonly record struct WebsiteUsageReport(DateOnly Date, string Host, int Seconds);
+
 public sealed class DayStat
 {
     public DateOnly Date { get; set; }
@@ -70,6 +81,7 @@ public sealed class AppState
     public List<TimerPreset> TimerPresets { get; set; } = TimerPreset.CreateDefaults();
     public List<UsageEntry> Usage { get; set; } = new();
     public List<AppUsageEntry> AppUsage { get; set; } = new();
+    public List<WebsiteUsageEntry> WebsiteUsage { get; set; } = new();
     public List<DayStat> Days { get; set; } = new();
     public Lockdown? Lockdown { get; set; }
     public PomodoroState? Pomodoro { get; set; }
@@ -89,6 +101,7 @@ public sealed class AppState
         TimerPresets ??= new();
         Usage ??= new();
         AppUsage ??= new();
+        WebsiteUsage ??= new();
         Days ??= new();
         Settings ??= new();
 
@@ -215,6 +228,22 @@ public sealed class AppState
             })
             .ToList();
         AppUsage.RemoveAll(entry => entry.Date < usageCutoff);
+        WebsiteUsage = WebsiteUsage
+            .Select(entry =>
+            {
+                entry.Host = Target.NormalizeHost(entry.Host);
+                return entry;
+            })
+            .Where(entry => entry.Host.Length > 0 && entry.UsedSeconds > 0)
+            .GroupBy(entry => (entry.Date, entry.Host))
+            .Select(group => new WebsiteUsageEntry
+            {
+                Date = group.Key.Date,
+                Host = group.Key.Host,
+                UsedSeconds = group.Sum(entry => entry.UsedSeconds)
+            })
+            .ToList();
+        WebsiteUsage.RemoveAll(entry => entry.Date < usageCutoff);
         Usage.RemoveAll(u => u.Date < usageCutoff);
         Days.RemoveAll(d => d.Date < usageCutoff);
         var completionCutoff = DateTimeOffset.Now.AddDays(-180);

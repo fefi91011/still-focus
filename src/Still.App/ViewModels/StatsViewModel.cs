@@ -18,6 +18,9 @@ public sealed class StatsViewModel : ObservableObject, IPageViewModel
     private AppUsageSectionViewModel _appsToday = new();
     private AppUsageSectionViewModel _appsWeek = new();
     private string _appUsageSignature = "init";
+    private WebsiteUsageSectionViewModel _websitesToday = new();
+    private WebsiteUsageSectionViewModel _websitesWeek = new();
+    private string _websiteUsageSignature = "init";
     private string _usedTodaySummary = string.Empty;
     private string _blockedToday = "0";
     private string _tasksToday = "0";
@@ -71,6 +74,18 @@ public sealed class StatsViewModel : ObservableObject, IPageViewModel
     {
         get => _appsWeek;
         private set => Set(ref _appsWeek, value);
+    }
+
+    public WebsiteUsageSectionViewModel WebsitesToday
+    {
+        get => _websitesToday;
+        private set => Set(ref _websitesToday, value);
+    }
+
+    public WebsiteUsageSectionViewModel WebsitesWeek
+    {
+        get => _websitesWeek;
+        private set => Set(ref _websitesWeek, value);
     }
 
     public string UsedTodaySummary
@@ -127,6 +142,7 @@ public sealed class StatsViewModel : ObservableObject, IPageViewModel
         var snapshot = _main.Runtime.Snapshot;
         var today = DateOnly.FromDateTime(DateTime.Now);
         UpdateAppUsage(state, today);
+        UpdateWebsiteUsage(today);
 
         var sig = string.Join("|", state.Days.Select(d => $"{d.Date}:{d.FocusMinutes}:{d.ScreenSeconds}:{d.BlockedAttempts}:{d.TasksCompleted}:{d.TaskRewardMinutes}"))
                   + "§" + string.Join("|", state.Usage.Select(u => $"{u.RuleId}:{u.Date}:{u.UsedSeconds}:{u.BonusMinutes}:{u.GraceBonusMinutes}"))
@@ -274,6 +290,35 @@ public sealed class StatsViewModel : ObservableObject, IPageViewModel
             "Letzte 7 Tage",
             0,
             "Noch keine App-Zeit in den letzten 7 Tagen.");
+    }
+
+    private void UpdateWebsiteUsage(DateOnly today)
+    {
+        var entries = _main.Runtime.GetWebsiteUsageSnapshot();
+        var signature = string.Join("|", entries
+            .Where(entry => entry.Date >= today.AddDays(-6) && entry.Date <= today)
+            .Select(entry => $"{entry.Date}:{entry.Host}:{entry.UsedSeconds / 10}"));
+
+        if (signature == _websiteUsageSignature)
+        {
+            return;
+        }
+
+        _websiteUsageSignature = signature;
+        WebsitesToday = WebsiteUsageSectionViewModel.Create(
+            entries,
+            today,
+            today,
+            "Heute",
+            0,
+            "Noch keine Website-Zeit erfasst.");
+        WebsitesWeek = WebsiteUsageSectionViewModel.Create(
+            entries,
+            today.AddDays(-6),
+            today,
+            "Letzte 7 Tage",
+            0,
+            "Noch keine Website-Zeit in den letzten 7 Tagen.");
     }
 
     private static string FormatMinutes(int minutes)

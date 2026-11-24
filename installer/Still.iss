@@ -1,5 +1,5 @@
 #define MyAppName "Still"
-#define MyAppVersion "0.2.1"
+#define MyAppVersion "0.2.2"
 #define MyAppPublisher "Still"
 #define MyAppExeName "Still.App.exe"
 #define MyAppId "{{B6E1F3A1-6C2D-4A6E-9E3B-2F1B7D4C8A90}"
@@ -32,7 +32,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=0.2.1.0
+VersionInfoVersion=0.2.2.0
 VersionInfoProductName={#MyAppName}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Still - Fokus-App fuer Windows

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Still Website Blocker",
   "short_name": "Still",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Zeigt beim Sperren einer Website dieselben Still-Aktionen wie bei gesperrten Apps.",
   "permissions": [
     "webNavigation",

@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="using:Still.App.Controls"
+             x:Class="Still.App.Controls.WebsiteUsageSection">
+  <StackPanel Spacing="8">
+    <Grid ColumnDefinitions="*,Auto">
+      <TextBlock Text="{Binding Title}" Classes="label" />
+      <TextBlock Grid.Column="1"
+                 Text="{Binding TotalText}"
+                 FontSize="10.5"
+                 Classes="muted"
+                 VerticalAlignment="Center" />
+    </Grid>
+
+    <TextBlock Text="{Binding EmptyText}"
+               Classes="muted"
+               FontSize="10"
+               TextWrapping="Wrap"
+               IsVisible="{Binding IsEmpty}" />
+
+    <ItemsControl ItemsSource="{Binding Rows}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" Margin="0,0,0,8">
+            <Border Grid.RowSpan="2"
+                    Classes="appTile"
+                    Width="24"
+                    Height="24"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center">
+              <Panel>
+                <Image Source="{Binding Icon}"
+                       Width="17"
+                       Height="17"
+                       Stretch="Uniform"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       IsVisible="{Binding HasIcon}" />
+                <TextBlock Text="{Binding Initials}"
+                           Classes="appInitials"
+                           FontSize="8"
+                           IsVisible="{Binding !HasIcon}" />
+              </Panel>
+            </Border>
+
+            <Grid Grid.Column="1" ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="0">
+                <TextBlock Text="{Binding Name}"
+                           FontSize="11"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock Text="{Binding Host}"
+                           FontSize="9"
+                           Classes="dim"
+                           TextTrimming="CharacterEllipsis"
+                           IsVisible="{Binding ShowHost}" />
+              </StackPanel>
+              <TextBlock Grid.Column="1"
+                         Text="{Binding DurationText}"
+                         FontSize="10.5"
+                         Classes="muted"
+                         VerticalAlignment="Center" />
+            </Grid>
+            <controls:MeterBar Grid.Row="1"
+                               Grid.Column="1"
+                               Value="{Binding Fraction}"
+                               Fill="{Binding BarBrush}"
+                               Height="3"
+                               Thickness="3" />
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <TextBlock Text="{Binding MoreText}"
+               Classes="dim"
+               FontSize="9"
+               IsVisible="{Binding HasMore}" />
+  </StackPanel>
+</UserControl>

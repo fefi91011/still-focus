@@ -65,6 +65,30 @@
       </StackPanel>
     </Border>
 
+    <Border Classes="card">
+      <StackPanel Spacing="12">
+        <Grid ColumnDefinitions="*,Auto">
+          <StackPanel Spacing="2">
+            <TextBlock Text="Website-Zeit" Classes="h3" />
+            <TextBlock Text="Welche Website wie lange aktiv war – unabhängig von Regeln. Erfasst werden nur HTTP(S)-Tabs im fokussierten Browserfenster; die Domain bleibt lokal."
+                       Classes="dim"
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       MaxWidth="700"
+                       HorizontalAlignment="Left" />
+          </StackPanel>
+          <Border Grid.Column="1" Classes="chip" VerticalAlignment="Center">
+            <TextBlock Text="ALLE WEBSITES" Classes="label" FontSize="8.5" />
+          </Border>
+        </Grid>
+
+        <Grid ColumnDefinitions="*,*">
+          <controls:WebsiteUsageSection DataContext="{Binding WebsitesToday}" Margin="0,0,20,0" />
+          <controls:WebsiteUsageSection Grid.Column="1" DataContext="{Binding WebsitesWeek}" Margin="20,0,0,0" />
+        </Grid>
+      </StackPanel>
+    </Border>
+
     <Grid ColumnDefinitions="1.6*,*">
       <StackPanel Spacing="16">
         <Border Classes="card">

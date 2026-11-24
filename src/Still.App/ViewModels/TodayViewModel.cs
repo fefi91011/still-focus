@@ -27,6 +27,9 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
     private AppUsageSectionViewModel _appsToday = new();
     private AppUsageSectionViewModel _appsWeek = new();
     private string _appUsageSignature = "init";
+    private WebsiteUsageSectionViewModel _websitesToday = new();
+    private WebsiteUsageSectionViewModel _websitesWeek = new();
+    private string _websiteUsageSignature = "init";
     private string _usedToday = "0 Min";
     private string _activeRulesText = string.Empty;
     private string _weekSummary = string.Empty;
@@ -139,6 +142,18 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
         private set => Set(ref _appsWeek, value);
     }
 
+    public WebsiteUsageSectionViewModel WebsitesToday
+    {
+        get => _websitesToday;
+        private set => Set(ref _websitesToday, value);
+    }
+
+    public WebsiteUsageSectionViewModel WebsitesWeek
+    {
+        get => _websitesWeek;
+        private set => Set(ref _websitesWeek, value);
+    }
+
     public string UsedToday
     {
         get => _usedToday;
@@ -249,6 +264,7 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
         ScreenTimeWeek = FormatDuration(screenWeekSeconds);
         ScreenTimeAverage = FormatDuration((int)Math.Round(screenWeekSeconds / 7.0));
         UpdateAppUsage(state, today);
+        UpdateWebsiteUsage(today);
         UsedToday = FormatDuration(snapshot.Rules
             .Where(r => r.Enabled && r.DailyLimitMinutes is not null)
             .Sum(r => r.UsedSeconds));
@@ -525,6 +541,35 @@ public sealed class TodayViewModel : ObservableObject, IPageViewModel
             "Letzte 7 Tage",
             5,
             "Noch keine App-Zeit in den letzten 7 Tagen.");
+    }
+
+    private void UpdateWebsiteUsage(DateOnly today)
+    {
+        var entries = _main.Runtime.GetWebsiteUsageSnapshot();
+        var signature = string.Join("|", entries
+            .Where(entry => entry.Date >= today.AddDays(-6) && entry.Date <= today)
+            .Select(entry => $"{entry.Date}:{entry.Host}:{entry.UsedSeconds / 10}"));
+
+        if (signature == _websiteUsageSignature)
+        {
+            return;
+        }
+
+        _websiteUsageSignature = signature;
+        WebsitesToday = WebsiteUsageSectionViewModel.Create(
+            entries,
+            today,
+            today,
+            "Heute",
+            5,
+            "Sobald die Erweiterung eine Website meldet, erscheint sie hier.");
+        WebsitesWeek = WebsiteUsageSectionViewModel.Create(
+            entries,
+            today.AddDays(-6),
+            today,
+            "Letzte 7 Tage",
+            5,
+            "Noch keine Website-Zeit in den letzten 7 Tagen.");
     }
 
     private static IReadOnlyList<ChartBar> BuildScreenTimeBars(AppState state, DateOnly today)

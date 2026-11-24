@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Still Website Blocker",
   "short_name": "Still",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Zeigt beim Sperren einer Website dieselben Still-Aktionen wie bei gesperrten Apps.",
   "permissions": [
     "webNavigation",
@@ -20,7 +20,8 @@
     ]
   },
   "action": {
-    "default_title": "Still Website Blocker"
+    "default_title": "Still Website Blocker",
+    "default_popup": "popup.html"
   },
   "browser_specific_settings": {
     "gecko": {

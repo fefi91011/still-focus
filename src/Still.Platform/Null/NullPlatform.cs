@@ -7,7 +7,6 @@ namespace Still.Platform.Null;
 public sealed class NullPlatform : IPlatform
 {
     private readonly NullProcessController _processes = new();
-    private readonly NullWebsiteBlocker _websites = new();
     private readonly NullStartupInstaller _startup = new();
 
     public string DisplayName => "Demo";
@@ -17,8 +16,6 @@ public sealed class NullPlatform : IPlatform
     public bool IsWindows => OperatingSystem.IsWindows();
 
     public IProcessController Processes => _processes;
-
-    public IWebsiteBlocker Websites => _websites;
 
     public IStartupInstaller Startup => _startup;
 
@@ -57,16 +54,6 @@ internal sealed class NullProcessController : IProcessController
         new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
     public bool Terminate(int processId) => false;
-}
-
-internal sealed class NullWebsiteBlocker : IWebsiteBlocker
-{
-    public bool CanBlock => false;
-
-    public string? UnavailableReason => "Website-Sperren sind in der Demo nicht aktiv.";
-
-    public WebsiteApplyResult Apply(IReadOnlyCollection<string> domains) =>
-        WebsiteApplyResult.Failure("Website-Sperren sind in der Demo nicht aktiv.");
 }
 
 internal sealed class NullStartupInstaller : IStartupInstaller

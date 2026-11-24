@@ -4,113 +4,71 @@ using Xunit;
 namespace Still.Core.Tests;
 
 /// <summary>
-/// The hosts file is shared with the operating system and the user. These tests
-/// pin down that Still only ever touches its own marked section.
+/// Website blocking moved to the browser extension. The hosts-file code remains
+/// only to clean up entries written by older Still versions, so these tests
+/// focus on preserving user entries while removing our marked section.
 /// </summary>
-public sealed class HostsFileTests
+public sealed class LegacyHostsCleanupTests
 {
-    private const string UserContent =
-        "# Copyright (c) 1993-2009 Microsoft Corp.\r\n" +
-        "127.0.0.1 localhost\r\n" +
-        "::1 localhost\r\n";
-
-    private static string Build(string existing, params string[] domains) =>
-        HostsWebsiteBlocker.BuildContent(existing, domains, out _);
-
     [Fact]
-    public void Adds_A_Marked_Section_And_Keeps_User_Entries()
+    public void Removes_Only_The_Managed_Section()
     {
-        var text = Build(UserContent, "youtube.com", "reddit.com");
+        var existing =
+            "127.0.0.1 localhost\r\n" +
+            "::1 localhost\r\n" +
+            "\r\n" +
+            "# >>> Still block begin >>>\r\n" +
+            "# Aktualisiert: 2026-03-02 10:00 — verwaltet von Still\r\n" +
+            "0.0.0.0 youtube.com\r\n" +
+            "::1 youtube.com\r\n" +
+            "0.0.0.0 www.youtube.com\r\n" +
+            "::1 www.youtube.com\r\n" +
+            "# <<< Still block end <<<\r\n" +
+            "\r\n" +
+            "# Meine Einträge\r\n" +
+            "10.0.0.1 nas\r\n";
+
+        var text = LegacyHostsCleanup.RemoveManagedSection(existing);
 
         Assert.Contains("127.0.0.1 localhost", text);
-        Assert.Contains("# >>> Still block begin >>>", text);
-        Assert.Contains("# <<< Still block end <<<", text);
-        Assert.Contains("0.0.0.0 youtube.com", text);
-        Assert.Contains("::1 youtube.com", text);
-        Assert.Contains("0.0.0.0 www.youtube.com", text);
-        Assert.Contains("0.0.0.0 reddit.com", text);
+        Assert.Contains("::1 localhost", text);
+        Assert.Contains("10.0.0.1 nas", text);
+        Assert.DoesNotContain("youtube.com", text);
+        Assert.DoesNotContain("Still block", text);
     }
 
     [Fact]
-    public void Reapplying_Replaces_The_Section_Instead_Of_Duplicating_It()
+    public void Leaves_Files_Without_Our_Markers_Untouched()
     {
-        var first = Build(UserContent, "youtube.com");
-        var second = Build(first, "reddit.com");
+        const string existing =
+            "127.0.0.1 localhost\r\n" +
+            "10.0.0.1 nas\r\n";
 
-        Assert.Equal(1, CountOccurrences(second, "# >>> Still block begin >>>"));
-        Assert.Equal(1, CountOccurrences(second, "# <<< Still block end <<<"));
-        Assert.DoesNotContain("youtube.com", second);
-        Assert.Contains("reddit.com", second);
-        Assert.Contains("127.0.0.1 localhost", second);
+        var text = LegacyHostsCleanup.RemoveManagedSection(existing);
+
+        Assert.Equal(existing, text);
+        Assert.False(LegacyHostsCleanup.HasManagedSection(existing));
     }
 
     [Fact]
-    public void Removing_All_Domains_Restores_The_Original_File()
+    public void Removes_An_Open_Ended_Section()
     {
-        var managed = Build(UserContent, "youtube.com");
-        var restored = Build(managed, Array.Empty<string>());
+        var existing =
+            "127.0.0.1 localhost\r\n" +
+            "# >>> Still block begin >>>\r\n" +
+            "0.0.0.0 youtube.com\r\n";
 
-        Assert.DoesNotContain("Still block begin", restored);
-        Assert.DoesNotContain("youtube.com", restored);
-        Assert.Contains("127.0.0.1 localhost", restored);
-        Assert.Contains("::1 localhost", restored);
-    }
+        var text = LegacyHostsCleanup.RemoveManagedSection(existing);
 
-    [Fact]
-    public void Leaves_An_Unmanaged_File_Untouched_When_There_Is_Nothing_To_Block()
-    {
-        var text = Build(UserContent);
-
-        Assert.Equal(UserContent, text);
-    }
-
-    [Fact]
-    public void Normalizes_Urls_And_Drops_Invalid_Or_Duplicate_Hosts()
-    {
-        var text = HostsWebsiteBlocker.BuildContent(
-            UserContent,
-            ["https://www.YouTube.com/watch?v=1", "youtube.com", "keine-domain", "  "],
-            out var entries);
-
-        Assert.Equal(1, entries);
-        Assert.Equal(1, CountOccurrences(text, "0.0.0.0 youtube.com"));
-        Assert.DoesNotContain("keine-domain", text);
-        Assert.DoesNotContain("watch", text);
-    }
-
-    [Fact]
-    public void Recovers_When_The_End_Marker_Is_Missing()
-    {
-        var broken = UserContent +
-                     "# >>> Still block begin >>>\r\n" +
-                     "0.0.0.0 youtube.com\r\n";
-
-        var text = Build(broken, "reddit.com");
-
-        Assert.Equal(1, CountOccurrences(text, "# >>> Still block begin >>>"));
-        Assert.Contains("reddit.com", text);
         Assert.Contains("127.0.0.1 localhost", text);
+        Assert.DoesNotContain("youtube.com", text);
     }
 
     [Fact]
-    public void A_File_With_Only_The_Managed_Section_Is_Removed_Cleanly()
+    public void Recognizes_The_Managed_Section()
     {
-        var managed = Build(string.Empty, "youtube.com");
-        var restored = Build(managed);
-
-        Assert.Equal(string.Empty, restored);
-    }
-
-    private static int CountOccurrences(string text, string value)
-    {
-        var count = 0;
-        var index = 0;
-        while ((index = text.IndexOf(value, index, StringComparison.Ordinal)) >= 0)
-        {
-            count++;
-            index += value.Length;
-        }
-
-        return count;
+        Assert.True(LegacyHostsCleanup.HasManagedSection(
+            "# >>> Still block begin >>>\r\n0.0.0.0 youtube.com\r\n# <<< Still block end <<<"));
+        Assert.False(LegacyHostsCleanup.HasManagedSection("127.0.0.1 localhost"));
     }
 }

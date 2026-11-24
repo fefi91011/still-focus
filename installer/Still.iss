@@ -1,5 +1,5 @@
 #define MyAppName "Still"
-#define MyAppVersion "0.1.1"
+#define MyAppVersion "0.2.0"
 #define MyAppPublisher "Still"
 #define MyAppExeName "Still.App.exe"
 #define MyAppId "{{B6E1F3A1-6C2D-4A6E-9E3B-2F1B7D4C8A90}"
@@ -27,7 +27,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 CloseApplications=no
 RestartApplications=no
-VersionInfoVersion=0.1.1.0
+VersionInfoVersion=0.2.0.0
 VersionInfoProductName={#MyAppName}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Still - Fokus-App fuer Windows
@@ -47,6 +47,7 @@ Name: "{autoprograms}\Still"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{a
 Name: "{autodesktop}\Still"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; Tasks: desktopicon
 
 [Run]
+Filename: "{app}\{#MyAppExeName}"; Parameters: "--cleanup-hosts"; Flags: runhidden waituntilterminated; StatusMsg: "Alte Website-Sperre wird entfernt ..."
 Filename: "{app}\{#MyAppExeName}"; Description: "Still jetzt starten"; Flags: nowait postinstall skipifsilent
 
 [Code]
@@ -66,7 +67,7 @@ begin
   { --cleanup returns 1 = hosts failed, 2 = autostart failed, 4 = unexpected. }
   if not Exec(AppExe, '--cleanup', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
   begin
-    MsgBox('Still konnte nicht gestartet werden, um hosts-Datei und Autostart zu bereinigen.' + #13#10 +
+    MsgBox('Still konnte nicht gestartet werden, um alte hosts-Eintraege und Autostart zu bereinigen.' + #13#10 +
            'Bitte entferne die Still-Eintraege in der hosts-Datei und die geplanten Aufgaben' + #13#10 +
            '"Still Autostart" und "Still Watchdog" danach manuell.',
            mbError, MB_OK);
@@ -78,7 +79,7 @@ begin
 
   Problems := '';
   if (ResultCode and 1) <> 0 then
-    Problems := Problems + '- Die hosts-Datei enthaelt noch Still-Eintraege.' + #13#10;
+    Problems := Problems + '- Die hosts-Datei enthaelt noch alte Still-Eintraege.' + #13#10;
   if (ResultCode and 2) <> 0 then
     Problems := Problems + '- Die Autostart-Aufgaben "Still Autostart" und "Still Watchdog" konnten nicht entfernt werden.' + #13#10;
   if (ResultCode and 4) <> 0 then

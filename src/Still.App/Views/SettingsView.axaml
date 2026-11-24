@@ -27,11 +27,11 @@
 
           <Grid ColumnDefinitions="*,Auto">
             <StackPanel Spacing="1">
-              <TextBlock Text="Website-Sperre" FontSize="11.5" />
-              <TextBlock Text="Hosts-Datei und DoH-Endpunkte" FontSize="9.5" Classes="dim" />
+              <TextBlock Text="Browser-Schutz" FontSize="11.5" />
+              <TextBlock Text="Erweiterung für Chrome, Edge, Firefox &amp; Co." FontSize="9.5" Classes="dim" />
             </StackPanel>
-            <Border Grid.Column="1" Classes="badge" Classes.ok="{Binding WebsiteOk}" Classes.danger="{Binding !WebsiteOk}">
-              <TextBlock Text="{Binding WebsiteStatus}" FontSize="8.5" Classes="accent" Classes.danger="{Binding !WebsiteOk}" />
+            <Border Grid.Column="1" Classes="badge" Classes.ok="{Binding ExtensionOk}" Classes.danger="{Binding !ExtensionOk}">
+              <TextBlock Text="{Binding ExtensionStatus}" FontSize="8.5" Classes="accent" Classes.danger="{Binding !ExtensionOk}" />
             </Border>
           </Grid>
 
@@ -91,7 +91,7 @@
       <Border Classes="card">
         <StackPanel Spacing="9">
           <TextBlock Text="Deinstallation" Classes="h3" />
-          <TextBlock Text="Beendet Still, stellt die hosts-Datei wieder her, entfernt den Autostart und öffnet danach den Windows-Deinstaller."
+          <TextBlock Text="Beendet Still, entfernt alte hosts-Einträge und den Autostart und öffnet danach den Windows-Deinstaller. Die Browser-Erweiterung muss im Browser selbst entfernt werden."
                      Classes="muted"
                      FontSize="10.5"
                      TextWrapping="Wrap" />
@@ -115,7 +115,7 @@
       <Border Classes="hero" Padding="18" IsVisible="{Binding IsDemo}">
         <StackPanel Spacing="4">
           <TextBlock Text="DEMO-MODUS" Classes="label" Foreground="{StaticResource AccentBrush}" />
-          <TextBlock Text="Diese Sitzung simuliert Sperren und speichert nichts dauerhaft. Auf Windows werden Hosts-Datei, Prozesse und Autostart tatsächlich verändert."
+          <TextBlock Text="Diese Sitzung simuliert Sperren und speichert nichts dauerhaft. Auf Windows werden Prozesse und Autostart tatsächlich verändert; Websites werden über die Browser-Erweiterung gesperrt."
                      Classes="muted"
                      FontSize="10.5"
                      TextWrapping="Wrap" />
@@ -195,14 +195,60 @@
 
       <Border Classes="card">
         <StackPanel Spacing="10">
-          <TextBlock Text="Websites" Classes="h3" />
           <Grid ColumnDefinitions="*,Auto">
             <StackPanel Spacing="1">
-              <TextBlock Text="DoH-Endpunkte mitsperren" FontSize="11.5" />
-              <TextBlock Text="Verhindert Umgehung per DNS-over-HTTPS" FontSize="9.5" Classes="dim" />
+              <TextBlock Text="Browser-Schutz" Classes="h3" />
+              <TextBlock Text="{Binding ExtensionDetail}"
+                         Classes="dim"
+                         FontSize="9.5"
+                         TextWrapping="Wrap" />
             </StackPanel>
-            <ToggleSwitch Grid.Column="1" IsChecked="{Binding BlockDoh, Mode=TwoWay}" VerticalAlignment="Center" />
+            <Button Grid.Column="1"
+                    Classes="ghost small"
+                    Content="Neu suchen"
+                    Command="{Binding RefreshBrowsersCommand}"
+                    IsEnabled="{Binding CanRefreshBrowsers}"
+                    VerticalAlignment="Center" />
           </Grid>
+
+          <ItemsControl ItemsSource="{Binding Browsers}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate>
+                <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                  <StackPanel Spacing="1">
+                    <TextBlock Text="{Binding Name}" FontSize="11.5" />
+                    <TextBlock Text="{Binding Detail}"
+                               FontSize="9"
+                               Classes="dim"
+                               TextTrimming="CharacterEllipsis" />
+                  </StackPanel>
+                  <Button Grid.Column="1"
+                          Classes="ghost small"
+                          Content="Einrichten"
+                          Command="{Binding SetupCommand}"
+                          VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <TextBlock Text="{Binding BrowserEmptyText}"
+                     Classes="muted"
+                     FontSize="10"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding !HasBrowsers}" />
+
+          <TextBlock Text="Die Einrichtung öffnet die Erweiterungsseite des Browsers und den vorbereiteten Ordner. Chrome/Edge/Brave benötigen einmalig den Entwicklermodus; Firefox verlangt für dauerhafte Installation eine Signatur. Eine stille Installation ist nur über die Browser-Stores möglich."
+                     Classes="dim"
+                     FontSize="9"
+                     TextWrapping="Wrap" />
+
+          <Button Classes="ghost small"
+                  Content="Erweiterungsordner öffnen"
+                  Command="{Binding OpenExtensionFolderCommand}"
+                  IsVisible="{Binding CanRefreshBrowsers}"
+                  HorizontalAlignment="Left" />
+
           <StackPanel Spacing="4">
             <TextBlock Text="Browser-Prozesse" Classes="label" />
             <TextBox Text="{Binding BrowserProcesses, Mode=TwoWay}"

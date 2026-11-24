@@ -6,7 +6,6 @@ namespace Still.Platform.Windows;
 public sealed class WindowsPlatform : IPlatform
 {
     private readonly WindowsProcessController _processes = new();
-    private readonly HostsWebsiteBlocker _websites = new();
     private readonly WindowsStartupInstaller _startup = new();
 
     public string DisplayName => "Windows";
@@ -16,8 +15,6 @@ public sealed class WindowsPlatform : IPlatform
     public bool IsWindows => true;
 
     public IProcessController Processes => _processes;
-
-    public IWebsiteBlocker Websites => _websites;
 
     public IStartupInstaller Startup => _startup;
 

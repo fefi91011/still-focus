@@ -1,4 +1,5 @@
 using Still.Platform;
+using Still.Platform.Windows;
 
 namespace Still.App;
 
@@ -23,13 +24,12 @@ internal static class UninstallCleanup
         {
             var platform = PlatformFactory.Create();
 
-            if (platform.Websites.CanBlock)
+            if (OperatingSystem.IsWindows())
             {
-                var result = platform.Websites.Apply(Array.Empty<string>());
-                if (!result.Success)
+                if (LegacyHostsCleanup.Run() != 0)
                 {
                     code |= HostsFailed;
-                    Log("hosts: " + (result.Error ?? "unbekannter Fehler"));
+                    Log("hosts: alte Einträge konnten nicht entfernt werden.");
                 }
             }
 

@@ -22,6 +22,25 @@ const elements = {
 let status = null;
 let busy = false;
 
+async function sayHello() {
+  try {
+    let version = "0";
+    try {
+      version = api.runtime.getManifest().version || version;
+    } catch {
+      // The manifest is always available in a real extension context.
+    }
+
+    await request("/v1/hello", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ version, userAgent: navigator.userAgent || "" })
+    });
+  } catch {
+    // The block page still works with the locally cached blocklist.
+  }
+}
+
 function safeHttpUrl(value) {
   try {
     const url = new URL(value);
@@ -72,9 +91,10 @@ function setBusy(value) {
   busy = value;
   elements.contact.disabled = value;
   elements.grace.disabled = value;
-  if (value) {
-    elements.grace.textContent = "Einen Moment…";
-  }
+  const canGrace = Boolean(status?.graceAvailable && status.graceMinutes > 0);
+  elements.grace.textContent = value
+    ? "Einen Moment…"
+    : canGrace ? `+${status.graceMinutes} Minuten` : "";
 }
 
 function render() {
@@ -121,6 +141,8 @@ async function loadStatus() {
     showOffline("Die blockierte Adresse konnte nicht gelesen werden.");
     return;
   }
+
+  await sayHello();
 
   try {
     const data = await request("/v1/status?host=" + encodeURIComponent(host));

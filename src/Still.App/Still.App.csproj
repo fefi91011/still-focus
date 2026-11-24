@@ -23,4 +23,12 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets/**" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\extension\src\**\*"
+             Link="extension\src\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\extension\manifests\*.json"
+             Link="extension\manifests\%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

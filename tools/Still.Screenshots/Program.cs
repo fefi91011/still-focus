@@ -67,7 +67,7 @@ internal static class Program
         viewModel.Rules.NewRuleCommand.Execute(null);
         Capture(window, "regel-editor");
 
-        viewModel.Rules.Editor.IsAlways = false;
+        viewModel.Rules.Editor.ScheduleEnabled = true;
         Dispatcher.UIThread.RunJobs();
         Capture(window, "regel-editor-woche");
 

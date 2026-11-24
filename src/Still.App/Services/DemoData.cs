@@ -256,8 +256,7 @@ public static class DemoData
                 RequireApprovalForUnlock = true,
                 DefaultGraceMinutes = 5,
                 DefaultMaxGraceUses = 2,
-                WarningThresholdPercent = 80,
-                BlockDohWhenBlocking = true
+                WarningThresholdPercent = 80
             }
         };
 
@@ -389,7 +388,6 @@ public sealed class DemoPlatform : IPlatform
     public bool IsElevated => true;
     public bool IsWindows => true;
     public IProcessController Processes { get; } = new DemoProcesses();
-    public IWebsiteBlocker Websites { get; } = new DemoWebsites();
     public IStartupInstaller Startup { get; } = new DemoStartup();
 
     public void OpenExternal(string target)
@@ -407,13 +405,6 @@ public sealed class DemoPlatform : IPlatform
         public IReadOnlyList<ProcessEntry> GetProcesses() => Array.Empty<ProcessEntry>();
         public IReadOnlySet<string> GetForegroundProcesses() => new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         public bool Terminate(int processId) => true;
-    }
-
-    private sealed class DemoWebsites : IWebsiteBlocker
-    {
-        public bool CanBlock => true;
-        public string? UnavailableReason => null;
-        public WebsiteApplyResult Apply(IReadOnlyCollection<string> domains) => WebsiteApplyResult.Ok(domains.Count);
     }
 
     private sealed class DemoStartup : IStartupInstaller

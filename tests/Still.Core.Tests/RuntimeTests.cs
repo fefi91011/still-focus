@@ -92,34 +92,6 @@ public sealed class RuntimeTests
     }
 
     [Fact]
-    public void Runtime_Applies_And_Clears_Hosts_Entries()
-    {
-        var clock = new FakeClock(TestTime.Local(2026, 3, 2, 10, 0));
-        var rule = new BlockRule
-        {
-            Name = "YouTube",
-            Targets = [new Target(TargetKind.Website, "youtube.com")],
-            Schedule = Schedule.Always()
-        };
-        var state = new AppState { Rules = [rule] };
-        state.Normalize();
-
-        var platform = new FakePlatform();
-        var store = new MemoryStore(TempDir());
-        using var runtime = new StillRuntime(state, store, platform, clock);
-
-        runtime.Initialize();
-        var first = platform.Websites.Last;
-        Assert.Contains("youtube.com", first);
-        Assert.Contains("dns.google", first);
-
-        var disabled = runtime.SetRuleEnabled(rule.Id, false, approved: true);
-        Assert.True(disabled.Ok);
-        runtime.Tick();
-        Assert.Empty(platform.Websites.Last);
-    }
-
-    [Fact]
     public void Website_Status_Matches_Subdomains_And_Reports_Grace()
     {
         var clock = new FakeClock(TestTime.Local(2026, 3, 2, 10, 0));
@@ -160,6 +132,34 @@ public sealed class RuntimeTests
         Assert.True(granted.Ok, granted.Message);
         Assert.False(runtime.GetWebsiteStatus("m.youtube.com").Blocked);
         Assert.False(runtime.GrantWebsiteGrace("example.com", rule.Id).Ok);
+    }
+
+    [Fact]
+    public void Website_Status_Respects_Exact_Domain_Scope()
+    {
+        var clock = new FakeClock(TestTime.Local(2026, 3, 2, 10, 0));
+        var rule = new BlockRule
+        {
+            Name = "Nur YouTube",
+            Targets =
+            [
+                new Target(TargetKind.Website, "youtube.com", "YouTube")
+                {
+                    IncludeSubdomains = false
+                }
+            ],
+            Schedule = Schedule.Always()
+        };
+        var state = new AppState { Rules = [rule] };
+        state.Normalize();
+
+        using var runtime = new StillRuntime(
+            state, new MemoryStore(TempDir()), new FakePlatform(), clock);
+        runtime.Initialize();
+
+        Assert.True(runtime.GetWebsiteStatus("youtube.com").Blocked);
+        Assert.True(runtime.GetWebsiteStatus("www.youtube.com").Blocked);
+        Assert.False(runtime.GetWebsiteStatus("m.youtube.com").Blocked);
     }
 
     [Fact]

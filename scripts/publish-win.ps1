@@ -35,4 +35,4 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Host ""
 Write-Host "Fertig: $output" -ForegroundColor Green
-Write-Host "Starte Still.App.exe als Administrator, damit Websites gesperrt und der geschützte Autostart eingerichtet werden können."
+Write-Host "Starte Still.App.exe als Administrator, damit der geschützte Autostart eingerichtet werden kann. Websites werden über die Browser-Erweiterung gesperrt."

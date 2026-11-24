@@ -11,13 +11,6 @@ namespace Still.Core.Runtime;
 /// </summary>
 public sealed class StillRuntime : IDisposable
 {
-    private static readonly string[] DohHosts =
-    [
-        "dns.google", "dns.google.com", "cloudflare-dns.com", "mozilla.cloudflare-dns.com",
-        "chrome.cloudflare-dns.com", "doh.opendns.com", "doh.cleanbrowsing.org",
-        "dns.quad9.net", "doh.mullvad.net", "dns.adguard-dns.com", "doh.nextdns.io"
-    ];
-
     private static readonly HashSet<string> ProtectedProcesses = new(StringComparer.OrdinalIgnoreCase)
     {
         "system", "idle", "registry", "smss", "csrss", "wininit", "winlogon", "services",
@@ -34,15 +27,10 @@ public sealed class StillRuntime : IDisposable
     private readonly IClock _clock;
     private readonly FocusEngine _engine;
     private readonly Dictionary<string, DateTimeOffset> _lastNotice = new();
-    private IReadOnlySet<string> _appliedDomains = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-    private HashSet<string>? _failedDomains;
-    private DateTimeOffset _lastWebsiteFailure = DateTimeOffset.MinValue;
     private DateTimeOffset _lastSave = DateTimeOffset.MinValue;
     private DateTimeOffset _lastHeartbeat = DateTimeOffset.MinValue;
-    private bool _websiteSyncForced = true;
     private bool _initialized;
     private bool _disposed;
-    private string? _enforcementError;
     private string? _persistenceError;
 
     public StillRuntime(
@@ -76,10 +64,6 @@ public sealed class StillRuntime : IDisposable
 
     public bool CanBlockProcesses => _platform.Processes.CanBlock;
 
-    public bool CanBlockWebsites => _platform.Websites.CanBlock;
-
-    public string? WebsiteBlockerReason => _platform.Websites.UnavailableReason;
-
     public string? ProcessBlockerReason => _platform.Processes.UnavailableReason;
 
     public bool CanInstallStartup => _platform.Startup.CanInstall;
@@ -89,17 +73,6 @@ public sealed class StillRuntime : IDisposable
     public string? StartupUnavailableReason => _platform.Startup.UnavailableReason;
 
     public string DataDirectory => _store.DataDirectory;
-
-    public string? EnforcementError
-    {
-        get
-        {
-            lock (_gate)
-            {
-                return _enforcementError;
-            }
-        }
-    }
 
     public string? PersistenceError
     {
@@ -115,6 +88,18 @@ public sealed class StillRuntime : IDisposable
     public bool IsLockdownActive => _state.Lockdown?.IsActiveAt(_clock.Now) == true;
 
     public bool HasApprover => _state.Contacts.Any(c => c.IsApprover && c.HasCode);
+
+    public bool HasEnabledWebsiteRules
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _state.Rules.Any(rule =>
+                    rule.Enabled && rule.Targets.Any(target => target.Kind == TargetKind.Website));
+            }
+        }
+    }
 
     public bool RequiresApprovalForEdits => _state.Settings.RequireApprovalForEdits && HasApprover;
 
@@ -162,7 +147,6 @@ public sealed class StillRuntime : IDisposable
             snapshot = _engine.Evaluate(activity);
             Snapshot = snapshot;
 
-            ReconcileWebsites(snapshot, now);
             CollectNotices(snapshot, activity, now, notices);
 
             if (now - _lastSave >= TimeSpan.FromSeconds(20))
@@ -911,7 +895,6 @@ public sealed class StillRuntime : IDisposable
                 DefaultGraceMinutes = draft.DefaultGraceMinutes,
                 DefaultMaxGraceUses = draft.DefaultMaxGraceUses,
                 WarningThresholdPercent = draft.WarningThresholdPercent,
-                BlockDohWhenBlocking = draft.BlockDohWhenBlocking,
                 CheckForUpdates = draft.CheckForUpdates,
                 LastUpdateCheckUtc = draft.LastUpdateCheckUtc,
                 BrowserProcesses = draft.BrowserProcesses.ToList()
@@ -951,7 +934,6 @@ public sealed class StillRuntime : IDisposable
             _state.Pomodoro = null;
             _state.Lockdown = null;
             _engine.RebuildUsage();
-            _websiteSyncForced = true;
             snapshot = RefreshLocked(save: true);
             result = OperationResult.Success("Alle Regeln und Daten wurden zurückgesetzt.");
         }
@@ -1025,18 +1007,6 @@ public sealed class StillRuntime : IDisposable
 
             try
             {
-                if (_state.Lockdown?.IsActiveAt(_clock.Now) != true && _appliedDomains.Count > 0)
-                {
-                    _platform.Websites.Apply(Array.Empty<string>());
-                }
-            }
-            catch
-            {
-                // Best effort cleanup; the next start reconciles the hosts file as well.
-            }
-
-            try
-            {
                 SaveLocked();
             }
             catch
@@ -1067,64 +1037,6 @@ public sealed class StillRuntime : IDisposable
         catch
         {
             return ActivitySnapshot.Empty;
-        }
-    }
-
-    private void ReconcileWebsites(EngineSnapshot snapshot, DateTimeOffset now)
-    {
-        var desired = new HashSet<string>(snapshot.BlockedDomains, StringComparer.OrdinalIgnoreCase);
-
-        if (desired.Count > 0 && (_state.Settings.BlockDohWhenBlocking || snapshot.LockdownActive))
-        {
-            desired.UnionWith(DohHosts);
-        }
-
-        if (!_platform.Websites.CanBlock)
-        {
-            if (desired.Count > 0)
-            {
-                _enforcementError = _platform.Websites.UnavailableReason
-                                    ?? "Websites können auf diesem System nicht gesperrt werden.";
-            }
-
-            return;
-        }
-
-        if (!_websiteSyncForced && desired.SetEquals(_appliedDomains))
-        {
-            return;
-        }
-
-        if (_failedDomains is not null
-            && _failedDomains.SetEquals(desired)
-            && now - _lastWebsiteFailure < TimeSpan.FromSeconds(20))
-        {
-            return;
-        }
-
-        try
-        {
-            var result = _platform.Websites.Apply(desired.OrderBy(d => d, StringComparer.OrdinalIgnoreCase).ToList());
-            _websiteSyncForced = false;
-
-            if (result.Success)
-            {
-                _appliedDomains = desired;
-                _failedDomains = null;
-                _enforcementError = null;
-            }
-            else
-            {
-                _failedDomains = desired;
-                _lastWebsiteFailure = now;
-                _enforcementError = result.Error ?? "Die Hosts-Datei konnte nicht aktualisiert werden.";
-            }
-        }
-        catch (Exception ex)
-        {
-            _failedDomains = desired;
-            _lastWebsiteFailure = now;
-            _enforcementError = "Website-Sperre fehlgeschlagen: " + ex.Message;
         }
     }
 
@@ -1226,9 +1138,17 @@ public sealed class StillRuntime : IDisposable
             snapshot.LockdownActive);
     }
 
-    private static bool HostMatches(string host, string target) =>
-        host.Equals(target, StringComparison.OrdinalIgnoreCase)
-        || host.EndsWith("." + target, StringComparison.OrdinalIgnoreCase);
+    private static bool HostMatches(string host, string target)
+    {
+        var exact = target.StartsWith(Target.ExactHostPrefix, StringComparison.Ordinal);
+        if (exact)
+        {
+            target = target[Target.ExactHostPrefix.Length..];
+        }
+
+        return host.Equals(target, StringComparison.OrdinalIgnoreCase)
+               || (!exact && host.EndsWith("." + target, StringComparison.OrdinalIgnoreCase));
+    }
 
     private void CollectNotices(
         EngineSnapshot snapshot,

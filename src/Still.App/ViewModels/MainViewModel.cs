@@ -33,8 +33,8 @@ public sealed class MainViewModel : ObservableObject
     private bool _isToastVisible;
     private bool _toastIsError;
     private string _toastText = string.Empty;
-    private bool _hasEnforcementError;
-    private string? _enforcementErrorText;
+    private bool _hasBrowserWarning;
+    private string _browserWarningText = string.Empty;
     private bool _hasPersistenceError;
     private string? _persistenceErrorText;
     private bool _hasLoadWarning;
@@ -133,6 +133,9 @@ public sealed class MainViewModel : ObservableObject
 
     public StillRuntime Runtime { get; }
     public bool IsDemo { get; }
+
+    /// <summary>Set by the host after the loopback bridge has started.</summary>
+    public ExtensionBridge? ExtensionBridge { get; set; }
     public string DemoText => "Demo-Modus – Sperren werden simuliert. Nichts auf diesem System wird blockiert.";
     public string VersionText => AppInfo.Version;
     public UpdateViewModel Update { get; }
@@ -240,16 +243,16 @@ public sealed class MainViewModel : ObservableObject
         private set => Set(ref _isSettingsActive, value);
     }
 
-    public bool HasEnforcementError
+    public bool HasBrowserWarning
     {
-        get => _hasEnforcementError;
-        private set => Set(ref _hasEnforcementError, value);
+        get => _hasBrowserWarning;
+        private set => Set(ref _hasBrowserWarning, value);
     }
 
-    public string? EnforcementErrorText
+    public string BrowserWarningText
     {
-        get => _enforcementErrorText;
-        private set => Set(ref _enforcementErrorText, value);
+        get => _browserWarningText;
+        private set => Set(ref _browserWarningText, value);
     }
 
     public bool HasPersistenceError
@@ -325,6 +328,7 @@ public sealed class MainViewModel : ObservableObject
         IsLockdown = snapshot.LockdownActive;
         IsPomodoro = snapshot.PomodoroRunning;
         NextBlockText = BuildNextBlockText(snapshot, now);
+        UpdateBrowserWarning();
     }
 
     public void ApplySnapshot(EngineSnapshot snapshot)
@@ -381,13 +385,12 @@ public sealed class MainViewModel : ObservableObject
             IsCalm = true;
         }
 
-        HasEnforcementError = !string.IsNullOrWhiteSpace(Runtime.EnforcementError);
-        EnforcementErrorText = Runtime.EnforcementError;
         HasPersistenceError = !string.IsNullOrWhiteSpace(Runtime.PersistenceError);
         PersistenceErrorText = Runtime.PersistenceError;
         HasLoadWarning = !string.IsNullOrWhiteSpace(Runtime.LoadWarning);
         LoadWarningText = Runtime.LoadWarning;
         NextBlockText = BuildNextBlockText(snapshot, now);
+        UpdateBrowserWarning();
 
         (CurrentPage as IPageViewModel)?.Refresh();
     }
@@ -566,6 +569,16 @@ public sealed class MainViewModel : ObservableObject
 
     private NavItemViewModel CreateNav(string label, string route, string icon) =>
         new(label, route, icon, new RelayCommand(() => Navigate(route)));
+
+    private void UpdateBrowserWarning()
+    {
+        HasBrowserWarning = !IsDemo
+            && Runtime.HasEnabledWebsiteRules
+            && ExtensionBridge?.IsConnected != true;
+        BrowserWarningText =
+            "Website-Regeln sind aktiv, aber die Browser-Erweiterung ist nicht verbunden. " +
+            "Ohne sie werden Websites nicht blockiert. Richte den Browser-Schutz in den Einstellungen ein.";
+    }
 
     private static string BuildNextBlockText(EngineSnapshot snapshot, DateTimeOffset now)
     {

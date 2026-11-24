@@ -577,7 +577,7 @@ public sealed class FocusEngine
             var host = Target.NormalizeHost(target.Value);
             if (host.Length > 0)
             {
-                domains.Add(host);
+                domains.Add(target.IncludeSubdomains ? host : Target.ExactHostPrefix + host);
             }
         }
     }

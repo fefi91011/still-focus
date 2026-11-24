@@ -6,7 +6,7 @@ Still blocks distracting apps and websites, ties schedules to daily limits, turn
 
 ![Still dashboard](docs/screenshots/01-heute.png)
 
-> **Status: 0.1.1.** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. The Windows installer has been installed and the full-screen overlay, contact action, and grace action have been exercised with real applications. Hosts-file blocking and scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
+> **Status: 0.2.0.** Windows-first. The interface and core also run on Linux and macOS, where blocking is intentionally simulated. Website blocking now runs through the bundled browser extension; the hosts file is only cleaned up on upgrades from older versions. The Windows installer, full-screen app overlay, contact action, grace action and extension bridge have been exercised locally. Scheduled tasks still need a broader administrator-level test matrix. The desktop UI currently ships in German; the documentation is in English.
 
 [Deutsche README](README.de.md)
 
@@ -16,7 +16,7 @@ Still blocks distracting apps and websites, ties schedules to daily limits, turn
 - **Limits with a human escape hatch.** The familiar **+5 minutes** grace button is configurable per rule and limited per day.
 - **More than a timer.** Schedules, allowances, tasks, Pomodoro focus, Cold Turkey sessions, and app/website rules share one simple model.
 - **A real full-screen block.** Blocked apps stay open but are covered by an overlay with **Close app**, **Contact approver**, and **+N minutes**.
-- **Same experience in the browser.** The optional extension shows the same card for blocked websites, including subdomains.
+- **The same card in the browser.** The extension covers websites and subdomains in Chrome, Edge, Firefox and other Chromium/Firefox-based browsers.
 
 ## Features
 
@@ -32,7 +32,7 @@ Still blocks distracting apps and websites, ties schedules to daily limits, turn
 | **Cold Turkey** | A hard lock without pauses or grace. Optionally releasable only with an approver's code. Browser processes can be included. A watchdog restarts the app if its heartbeat disappears. |
 | **Statistics** | Focus minutes, screen time, app time, blocked attempts, completed tasks, rule budgets, and a seven-day history. |
 | **Autostart** | Installs a scheduled task for the app and watchdog from Settings. |
-| **Browser extension** | Chrome/Edge and Firefox show the same block card for websites: rule, grace, **Contact approvers**, and **Close tab**. It also covers subdomains. |
+| **Browser extension** | Chromium and Firefox extensions show the same block card for websites: rule, grace, **Contact approvers**, and **Close tab**. They cover subdomains and reconnect automatically to the running app. |
 
 ## Screenshots
 
@@ -98,7 +98,7 @@ dotnet run --project src/Still.App
 
 ## Install on Windows
 
-The ready-to-run installer is published in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.1.1.exe` and run it. The release notes include the SHA-256 checksum.
+The ready-to-run installer is published in [GitHub Releases](https://github.com/fefi91011/still-focus/releases/latest). Download `StillSetup-0.2.0.exe` and run it. The release notes include the SHA-256 checksum.
 
 To build the installer locally:
 
@@ -106,28 +106,55 @@ To build the installer locally:
 powershell -ExecutionPolicy Bypass -File scripts/build-installer.ps1
 ```
 
-The result is `dist\installer\StillSetup-0.1.1.exe`. It is self-contained, so the .NET runtime does not need to be installed separately.
+The result is `dist\installer\StillSetup-0.2.0.exe`. It is self-contained, so the .NET runtime does not need to be installed separately.
 
-The installer creates Start menu and optional desktop shortcuts and starts Still after installation. Website blocking through the hosts file needs administrator rights; app blocking does not. The installer is currently unsigned, so Windows SmartScreen may warn. A code-signing certificate is required for frictionless public distribution.
+The installer still runs elevated so it can install into Program Files and remove hosts entries left by older Still versions. App blocking and website blocking at runtime do not need administrator rights; website blocking uses the browser extension. The installer creates Start menu and optional desktop shortcuts and starts Still after installation. It is currently unsigned, so Windows SmartScreen may warn. A code-signing certificate is required for frictionless public distribution.
 
-To uninstall, quit Still from the tray first so the hosts-file entry can be removed, then use **Settings → Apps → Installed apps → Still → Uninstall**.
+To uninstall, quit Still from the tray first, then use **Settings → Apps → Installed apps → Still → Uninstall**. The uninstaller removes old hosts entries and the autostart tasks. Remove the browser extension separately in the browser's extension page.
 
 ## Browser extension
 
-The extension is optional. It is useful when the hosts-file block is too coarse, for example when you want to cover all YouTube subdomains.
+Website blocking is implemented by the extension. Still prepares the files and opens the right browser page:
+
+1. Open **Einstellungen → Browser-Schutz**.
+2. Choose **Einrichten** next to a detected browser.
+3. Follow the one-time browser prompt.
+
+The extension is included in the app and the installer. Supported browsers:
+
+- **Chromium:** Chrome, Edge, Brave, Vivaldi, Opera, Opera GX, Chromium, Arc
+- **Firefox:** Firefox, Zen Browser, LibreWolf, Waterfox, Floorp
+
+To build the packages separately:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build-extension.ps1
 ```
 
-Then:
+Output:
 
-- **Chrome / Edge:** open `chrome://extensions` or `edge://extensions`, enable Developer mode, and load `dist/extension/chrome` as an unpacked extension.
-- **Firefox:** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `dist/extension/firefox/manifest.json`. Permanent installation requires Mozilla signing.
+```text
+dist/extension/chromium/
+dist/extension/firefox/
+dist/extension/still-website-blocker-chromium.zip
+dist/extension/still-website-blocker-firefox.xpi
+```
+
+Manual install:
+
+- **Chromium:** open `chrome://extensions` (or the equivalent page), enable Developer mode, choose **Load unpacked**, and select `dist/extension/chromium`.
+- **Firefox:** open `about:debugging#/runtime/this-firefox`, choose **Load Temporary Add-on**, and select `dist/extension/firefox/manifest.json`. A permanent install requires Mozilla signing.
 
 The extension talks only to the running app at `http://127.0.0.1:47821`. It has no cloud access and no separate rules; it reads the current website status and grace state from Still.
 
-See [extension/README.md](extension/README.md) for details.
+### Why there is no fully silent install
+
+Stock browsers do not let a normal desktop app add an unpacked extension to an existing profile:
+
+- Chromium browsers only force-install through their stores, or through enterprise policy on domain-joined/managed devices.
+- Firefox requires a Mozilla-signed XPI; auto-install through policy needs that signed package.
+
+The one-time setup is therefore deliberate. See [extension/README.md](extension/README.md) for details.
 
 ## Privacy and data
 
@@ -137,6 +164,7 @@ Everything stays local:
   - `state.json` and `state.bak.json`
   - `heartbeat` for the watchdog
   - `still.log` on errors
+  - prepared browser extension files under `browser-extension\`
 - **Demo:** `%TEMP%\still-demo`
 - **Override:** set `STILL_DATA_DIR` to use another folder.
 
@@ -147,18 +175,18 @@ There is no internet connection, telemetry, or sync. The optional extension comm
 ```text
 src/
   Still.Core/       Rules, limits, timers, tasks, approvals, persistence, engine
-  Still.Platform/   Windows hosts/process/elevation/scheduled-task adapters; NullPlatform
-  Still.App/        Avalonia 11 UI, tray, full-screen block window, demo mode
+  Still.Platform/   Windows process/elevation/scheduled-task adapters; NullPlatform
+  Still.App/        Avalonia 11 UI, tray, full-screen block window, extension setup
   Still.Watchdog/   Restarts the app when its heartbeat is missing
 tests/
   Still.Core.Tests/ 48 tests for the engine, app-time tracking, schedules, limits,
-                   approvals, persistence, and hosts-file transformation
-extension/          Chrome/Firefox WebExtension with a local Still block page
+                   approvals, persistence, and legacy hosts cleanup
+extension/          Chromium/Firefox WebExtension with a local Still block page
 tools/
   Still.Screenshots/ Headless renderer for the UI
 ```
 
-`Still.Core` contains the platform-independent logic. `Still.Platform` implements three capabilities: `IProcessController`, `IWebsiteBlocker`, and `IStartupInstaller`. The app coordinates them through `StillRuntime`.
+`Still.Core` contains the platform-independent logic. `Still.Platform` implements two capabilities: `IProcessController` and `IStartupInstaller`. The app coordinates them through `StillRuntime`.
 
 Each tick evaluates a rule against four inputs:
 
@@ -167,7 +195,7 @@ Each tick evaluates a rule against four inputs:
 3. Is a Cold Turkey or Pomodoro lock active?
 4. Is an allowance active for the specific target?
 
-The result is a set of processes and domains to block. The platform applies it; the UI only reads the resulting snapshot.
+The result is a set of processes and domains to block. The platform enforces processes; the extension reads the domain set through the loopback bridge. The UI only reads the resulting snapshot.
 
 ## Build, test, and regenerate screenshots
 
@@ -197,15 +225,14 @@ Use `-SelfContained` for a runtime-independent build. See `scripts/publish-win.p
 ## Known limitations
 
 - **The UI is German.** English localization is not implemented yet. The README and extension docs are English.
-- **Hosts-file blocking is lightweight and reversible.** It needs administrator rights and is not a packet filter or firewall.
-- **Hosts blocking covers the exact host and `www.`**, not arbitrary subdomains. The browser extension covers subdomains.
-- **The extension only works in the browser** and can be disabled. It complements, rather than replaces, the system-wide hosts block.
-- **Known DoH endpoints are blocked**, but a browser configured with an unknown DoH provider can bypass that. This is a documented v1 limitation.
+- **Website blocking lives in the browser.** The extension only affects browsers where it is installed and enabled. It is not a system-wide packet filter or firewall, and it can be disabled.
+- **No hosts fallback anymore.** Still removes hosts entries from older versions on upgrade/uninstall. New website blocks always go through the extension.
+- **Silent extension install is not available on stock browsers.** Chromium requires store/enterprise distribution, Firefox requires a Mozilla-signed XPI.
 - **App blocking polls about once per second** and shows a full-screen overlay. Blocked apps are not terminated automatically; the overlay's **Close app** action closes them explicitly. Protected system processes are never touched.
 - **Usage is measured from foreground processes.** Website usage is approximated by foreground browser time, not per tab. Closing Still stops tracking.
-- **No kernel driver or DRM.** A local administrator can kill the app or the watchdog with Task Manager. The hosts entry remains, and the watchdog can restart the app, but this is not tamper-proof.
+- **No kernel driver or DRM.** A local administrator can kill the app or the watchdog with Task Manager. The extension can be removed in the browser. The watchdog can restart the app, but this is not tamper-proof.
 - **No Windows service.** The app is a tray application and the watchdog is a scheduled task, which keeps installation and debugging simple.
-- **Other platforms:** `Still.Core` and the Avalonia UI are portable, but `NullPlatform` provides simulated blocking only on Linux/macOS.
+- **Other platforms:** `Still.Core` and the Avalonia UI are portable, but `NullPlatform` provides simulated blocking only on Linux/macOS. The extension itself is cross-platform, but the desktop-side setup is Windows-first.
 
 ## License
 

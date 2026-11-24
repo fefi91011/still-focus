@@ -25,6 +25,8 @@ public sealed class ExtensionBridge : IDisposable
     private readonly Action _contact;
     private readonly HttpListener _listener = new();
     private readonly CancellationTokenSource _cancellation = new();
+    private readonly object _clientGate = new();
+    private ExtensionClient? _client;
     private bool _started;
     private bool _disposed;
 
@@ -34,6 +36,20 @@ public sealed class ExtensionBridge : IDisposable
         _openApp = openApp;
         _contact = contact;
     }
+
+    public ExtensionClient? LastClient
+    {
+        get
+        {
+            lock (_clientGate)
+            {
+                return _client;
+            }
+        }
+    }
+
+    public bool IsConnected => LastClient is { } client
+        && DateTimeOffset.UtcNow - client.SeenAt <= TimeSpan.FromMinutes(5);
 
     public void Start()
     {
@@ -147,6 +163,38 @@ public sealed class ExtensionBridge : IDisposable
                         port = Port
                     });
                     return;
+
+                case "/v1/hello":
+                {
+                    var hello = await ReadJsonAsync<HelloRequest>(request);
+                    var userAgent = hello?.UserAgent
+                        ?? request.QueryString["ua"]
+                        ?? request.UserAgent
+                        ?? string.Empty;
+                    var version = hello?.Version
+                        ?? request.QueryString["version"]
+                        ?? "?";
+                    var name = string.IsNullOrWhiteSpace(hello?.Browser)
+                        ? ParseBrowser(userAgent)
+                        : hello!.Browser!.Trim();
+
+                    lock (_clientGate)
+                    {
+                        _client = new ExtensionClient(
+                            name,
+                            version,
+                            userAgent,
+                            DateTimeOffset.UtcNow);
+                    }
+
+                    await WriteJsonAsync(response, 200, new
+                    {
+                        ok = true,
+                        app = "Still",
+                        version = AppInfo.Version
+                    });
+                    return;
+                }
 
                 case "/v1/blocked":
                 {
@@ -323,5 +371,42 @@ public sealed class ExtensionBridge : IDisposable
         || origin.StartsWith("moz-extension://", StringComparison.OrdinalIgnoreCase)
         || origin.StartsWith("safari-web-extension://", StringComparison.OrdinalIgnoreCase);
 
+    private static string ParseBrowser(string userAgent)
+    {
+        if (userAgent.Contains("Edg/", StringComparison.Ordinal))
+        {
+            return "Microsoft Edge";
+        }
+
+        if (userAgent.Contains("OPR/", StringComparison.Ordinal))
+        {
+            return "Opera";
+        }
+
+        if (userAgent.Contains("Vivaldi/", StringComparison.Ordinal))
+        {
+            return "Vivaldi";
+        }
+
+        if (userAgent.Contains("Firefox/", StringComparison.Ordinal))
+        {
+            return "Mozilla Firefox";
+        }
+
+        if (userAgent.Contains("Chrome/", StringComparison.Ordinal))
+        {
+            return "Google Chrome";
+        }
+
+        return "Browser";
+    }
+
     private sealed record GraceRequest(Guid RuleId, string? Host);
+    private sealed record HelloRequest(string? Version, string? Browser, string? UserAgent);
 }
+
+public sealed record ExtensionClient(
+    string Name,
+    string Version,
+    string UserAgent,
+    DateTimeOffset SeenAt);

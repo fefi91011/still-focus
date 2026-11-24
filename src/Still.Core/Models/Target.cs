@@ -9,13 +9,20 @@ public enum TargetKind
 /// <summary>A single thing that can be blocked: an executable or a domain.</summary>
 public sealed class Target
 {
+    /// <summary>
+    /// Marks a blocked host that must match exactly instead of covering its
+    /// subdomains. Used by the extension bridge, where the scope has to survive
+    /// as a plain string.
+    /// </summary>
+    public const string ExactHostPrefix = "=";
+
     public TargetKind Kind { get; set; }
     public string Value { get; set; } = string.Empty;
     public string? Label { get; set; }
 
     /// <summary>
-    /// Websites only: also match every subdomain of <see cref="Value"/>. The hosts file
-    /// can only carry exact hosts, so this mainly widens browser and app checks.
+    /// Websites only: also match every subdomain of <see cref="Value"/>. The browser
+    /// extension uses this for the block decision.
     /// </summary>
     public bool IncludeSubdomains { get; set; } = true;
 

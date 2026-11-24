@@ -11,6 +11,7 @@ using Still.Core.Models;
 using Still.Core.Persistence;
 using Still.Core.Runtime;
 using Still.Platform;
+using Still.Platform.Windows;
 
 namespace Still.App.Services;
 
@@ -69,6 +70,17 @@ public sealed class AppHost
             var state = store.Load(out var warning);
             runtime = new StillRuntime(state, store, PlatformFactory.Create(), null, warning);
             runtime.Initialize();
+
+            // 0.1.x wrote website blocks into the hosts file. Clean that
+            // section up on the first elevated start after the upgrade. If the
+            // app is not elevated, the installer or uninstaller does it later.
+            if (OperatingSystem.IsWindows())
+            {
+                LegacyHostsCleanup.Run();
+            }
+
+            // Keep an already loaded unpacked extension in sync after updates.
+            new BrowserExtensionService().RefreshPreparedPackages();
         }
 
         var viewModel = new MainViewModel(runtime, demo);
@@ -91,10 +103,12 @@ public sealed class AppHost
             {
                 _extensionBridge = new ExtensionBridge(_runtime, OpenFromExtension, ContactFromExtension);
                 _extensionBridge.Start();
+                _viewModel.ExtensionBridge = _extensionBridge;
             }
             catch (Exception ex)
             {
                 _extensionBridge = null;
+                _viewModel.ExtensionBridge = null;
                 Log(ex);
             }
         }
@@ -122,6 +136,7 @@ public sealed class AppHost
 
         _extensionBridge?.Dispose();
         _extensionBridge = null;
+        _viewModel.ExtensionBridge = null;
 
         try
         {

@@ -4,6 +4,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+Add-Type -AssemblyName System.IO.Compression.FileSystem
 $root = Split-Path -Parent $PSScriptRoot
 $source = Join-Path $root "extension\src"
 $manifests = Join-Path $root "extension\manifests"
@@ -22,8 +23,8 @@ if (Test-Path $output) {
 }
 
 $targets = @(
-    @{ Name = "chrome"; Manifest = "chrome.json"; Archive = "still-website-blocker-chrome.zip" },
-    @{ Name = "firefox"; Manifest = "firefox.json"; Archive = "still-website-blocker-firefox.zip" }
+    @{ Name = "chromium"; Manifest = "chrome.json"; Archive = "still-website-blocker-chromium.zip" },
+    @{ Name = "firefox"; Manifest = "firefox.json"; Archive = "still-website-blocker-firefox.xpi" }
 )
 
 foreach ($target in $targets) {
@@ -32,7 +33,12 @@ foreach ($target in $targets) {
     Copy-Item (Join-Path $source "*") $destination -Recurse -Force
     Copy-Item (Join-Path $manifests $target.Manifest) (Join-Path $destination "manifest.json") -Force
     $archive = Join-Path $output $target.Archive
-    Compress-Archive -Path (Join-Path $destination "*") -DestinationPath $archive -Force
+    if ([IO.Path]::GetExtension($archive) -eq ".xpi") {
+        # Compress-Archive only accepts .zip. An XPI is a normal ZIP archive.
+        [IO.Compression.ZipFile]::CreateFromDirectory($destination, $archive)
+    } else {
+        Compress-Archive -Path (Join-Path $destination "*") -DestinationPath $archive -Force
+    }
     Write-Output "Built $destination"
     Write-Output "Built $archive"
 }

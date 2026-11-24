@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Windows.Input;
 using Still.App.Services;
@@ -9,13 +10,13 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
 {
     private static readonly CultureInfo German = CultureInfo.GetCultureInfo("de-DE");
     private readonly MainViewModel _main;
+    private readonly BrowserExtensionService _browserService = new();
 
     private bool _closeToTray = true;
     private bool _startMinimized;
     private bool _showOverlay = true;
     private bool _requireApprovalForEdits;
     private bool _requireApprovalForUnlock;
-    private bool _blockDoh = true;
     private bool _checkForUpdates = true;
     private string _defaultGrace = "5";
     private string _defaultMaxGrace = "2";
@@ -23,17 +24,19 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     private string _browserProcesses = string.Empty;
     private string _platformStatus = string.Empty;
     private string _adminStatus = string.Empty;
-    private string _websiteStatus = string.Empty;
+    private string _extensionStatus = "Nicht verbunden";
+    private string _extensionDetail = string.Empty;
     private string _processStatus = string.Empty;
     private string _startupStatus = string.Empty;
     private string _dataPath = string.Empty;
     private bool _adminOk;
-    private bool _websiteOk;
+    private bool _extensionOk;
     private bool _processOk;
     private bool _startupOk;
     private bool _startupInstalled;
     private bool _canInstallStartup;
     private bool _isDemo;
+    private bool _browsersLoaded;
 
     public SettingsViewModel(MainViewModel main)
     {
@@ -43,6 +46,8 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         InstallStartupCommand = new AsyncRelayCommand(InstallStartupAsync, ex => main.ShowToast(ex.Message, error: true));
         RemoveStartupCommand = new AsyncRelayCommand(RemoveStartupAsync, ex => main.ShowToast(ex.Message, error: true));
         OpenDataFolderCommand = new RelayCommand(() => _main.Runtime.RevealDataFolder());
+        RefreshBrowsersCommand = new RelayCommand(LoadBrowsers);
+        OpenExtensionFolderCommand = new RelayCommand(OpenExtensionFolder);
         ResetCommand = new AsyncRelayCommand(ResetAsync, ex => main.ShowToast(ex.Message, error: true));
         UninstallCommand = new AsyncRelayCommand(UninstallAsync, ex => main.ShowToast(ex.Message, error: true));
 
@@ -54,6 +59,8 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     public ICommand InstallStartupCommand { get; }
     public ICommand RemoveStartupCommand { get; }
     public ICommand OpenDataFolderCommand { get; }
+    public ICommand RefreshBrowsersCommand { get; }
+    public ICommand OpenExtensionFolderCommand { get; }
     public ICommand ResetCommand { get; }
     public ICommand UninstallCommand { get; }
     public UpdateViewModel Update { get; }
@@ -86,12 +93,6 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
     {
         get => _requireApprovalForUnlock;
         set => Set(ref _requireApprovalForUnlock, value);
-    }
-
-    public bool BlockDoh
-    {
-        get => _blockDoh;
-        set => Set(ref _blockDoh, value);
     }
 
     public bool CheckForUpdates
@@ -136,11 +137,27 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         private set => Set(ref _adminStatus, value);
     }
 
-    public string WebsiteStatus
+    public string ExtensionStatus
     {
-        get => _websiteStatus;
-        private set => Set(ref _websiteStatus, value);
+        get => _extensionStatus;
+        private set => Set(ref _extensionStatus, value);
     }
+
+    public string ExtensionDetail
+    {
+        get => _extensionDetail;
+        private set => Set(ref _extensionDetail, value);
+    }
+
+    public ObservableCollection<BrowserRowViewModel> Browsers { get; } = new();
+
+    public bool HasBrowsers => Browsers.Count > 0;
+
+    public bool CanRefreshBrowsers => !IsDemo;
+
+    public string BrowserEmptyText => IsDemo
+        ? "Im Demo-Modus werden keine Browser erkannt."
+        : "Kein unterstützter Browser gefunden. Chrome, Edge, Brave, Vivaldi, Opera, Firefox, Zen, LibreWolf, Waterfox und Floorp werden erkannt.";
 
     public string ProcessStatus
     {
@@ -166,10 +183,10 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         private set => Set(ref _adminOk, value);
     }
 
-    public bool WebsiteOk
+    public bool ExtensionOk
     {
-        get => _websiteOk;
-        private set => Set(ref _websiteOk, value);
+        get => _extensionOk;
+        private set => Set(ref _extensionOk, value);
     }
 
     public bool ProcessOk
@@ -211,6 +228,8 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
             if (Set(ref _isDemo, value))
             {
                 Raise(nameof(CanUninstall));
+                Raise(nameof(CanRefreshBrowsers));
+                Raise(nameof(BrowserEmptyText));
             }
         }
     }
@@ -225,11 +244,6 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         PlatformStatus = runtime.IsWindows ? runtime.PlatformName : "Demo-Modus";
         AdminStatus = runtime.IsElevated ? "Administrator" : "Normale Rechte";
         AdminOk = runtime.IsElevated;
-
-        WebsiteStatus = runtime.CanBlockWebsites
-            ? "Bereit"
-            : runtime.WebsiteBlockerReason ?? "Nicht verfügbar";
-        WebsiteOk = runtime.CanBlockWebsites;
 
         ProcessStatus = runtime.CanBlockProcesses
             ? "Bereit"
@@ -247,6 +261,78 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
 
         DataPath = runtime.DataDirectory;
         IsDemo = _main.IsDemo;
+
+        var client = _main.ExtensionBridge?.LastClient;
+        var connected = _main.ExtensionBridge?.IsConnected == true;
+        ExtensionOk = IsDemo || connected;
+        ExtensionStatus = IsDemo ? "Demo" : connected ? "Verbunden" : "Nicht verbunden";
+        ExtensionDetail = IsDemo
+            ? "Im Demo-Modus wird keine Browser-Erweiterung verbunden."
+            : client is null
+                ? "Noch keine Verbindung. Richte die Erweiterung unten für deinen Browser ein."
+                : connected
+                    ? $"{client.Name} {client.Version} · zuletzt {client.SeenAt.LocalDateTime:HH:mm}"
+                    : $"{client.Name} · zuletzt {client.SeenAt.LocalDateTime:dd.MM. HH:mm}";
+
+        if (!_browsersLoaded && !IsDemo)
+        {
+            _browsersLoaded = true;
+            LoadBrowsers();
+        }
+    }
+
+    private void LoadBrowsers()
+    {
+        Browsers.Clear();
+        if (!IsDemo)
+        {
+            foreach (var browser in _browserService.DetectInstalled())
+            {
+                Browsers.Add(new BrowserRowViewModel(
+                    browser,
+                    SetupBrowserAsync,
+                    ex => _main.ShowToast(ex.Message, error: true)));
+            }
+        }
+
+        Raise(nameof(HasBrowsers));
+    }
+
+    private async Task SetupBrowserAsync(DetectedBrowser browser)
+    {
+        var description = await Task.Run(() => _browserService.Describe(browser));
+        if (!description.Ok)
+        {
+            await _main.InfoAsync("Browser-Schutz einrichten", description.Message);
+            return;
+        }
+
+        var confirmed = await _main.ConfirmAsync(
+            "Browser-Schutz einrichten",
+            description.Message,
+            "Jetzt öffnen");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        var result = await Task.Run(() => _browserService.Open(browser));
+        if (!result.Ok)
+        {
+            await _main.InfoAsync("Browser-Schutz einrichten", result.Message);
+        }
+        else
+        {
+            _main.ShowToast($"{browser.Name} geöffnet. Folge den Schritten im Browser.");
+        }
+
+        Refresh();
+    }
+
+    private void OpenExtensionFolder()
+    {
+        _browserService.OpenExtensionFolder();
+        _main.ShowToast("Erweiterungsordner geöffnet.");
     }
 
     private void LoadDraft()
@@ -257,7 +343,6 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         ShowOverlay = settings.ShowBlockedOverlay;
         RequireApprovalForEdits = settings.RequireApprovalForEdits;
         RequireApprovalForUnlock = settings.RequireApprovalForUnlock;
-        BlockDoh = settings.BlockDohWhenBlocking;
         CheckForUpdates = settings.CheckForUpdates;
         DefaultGrace = settings.DefaultGraceMinutes.ToString(German);
         DefaultMaxGrace = settings.DefaultMaxGraceUses.ToString(German);
@@ -316,7 +401,6 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
             DefaultGraceMinutes = grace,
             DefaultMaxGraceUses = maxGrace,
             WarningThresholdPercent = threshold,
-            BlockDohWhenBlocking = BlockDoh,
             CheckForUpdates = CheckForUpdates,
             LastUpdateCheckUtc = current.LastUpdateCheckUtc,
             BrowserProcesses = browsers
@@ -364,9 +448,10 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
 
         var confirmed = await _main.ConfirmAsync(
             "Still deinstallieren",
-            "Still wird beendet, die hosts-Datei wird wiederhergestellt und der Autostart entfernt. " +
-            "Danach öffnet sich der Windows-Deinstaller. " +
-            "Regeln und Statistiken bleiben im Datenordner und können dort manuell gelöscht werden.",
+            "Still wird beendet, alte hosts-Einträge und der Autostart werden entfernt. " +
+            "Danach öffnet sich der Windows-Deinstaller. Die Browser-Erweiterung muss im Browser " +
+            "selbst entfernt werden. Regeln und Statistiken bleiben im Datenordner und können dort " +
+            "manuell gelöscht werden.",
             "Deinstallieren");
 
         if (!confirmed)
@@ -410,4 +495,23 @@ public sealed class SettingsViewModel : ObservableObject, IPageViewModel
         LoadDraft();
         Refresh();
     }
+}
+
+public sealed class BrowserRowViewModel
+{
+    public BrowserRowViewModel(
+        DetectedBrowser browser,
+        Func<DetectedBrowser, Task> setup,
+        Action<Exception> onError)
+    {
+        Browser = browser;
+        Name = browser.Name;
+        Detail = browser.EngineLabel + " · " + browser.ExecutablePath;
+        SetupCommand = new AsyncRelayCommand(() => setup(browser), onError);
+    }
+
+    public DetectedBrowser Browser { get; }
+    public string Name { get; }
+    public string Detail { get; }
+    public ICommand SetupCommand { get; }
 }

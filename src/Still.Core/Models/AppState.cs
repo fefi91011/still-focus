@@ -13,7 +13,6 @@ public sealed class StillSettings
     public int DefaultGraceMinutes { get; set; } = 5;
     public int DefaultMaxGraceUses { get; set; } = 2;
     public int WarningThresholdPercent { get; set; } = 80;
-    public bool BlockDohWhenBlocking { get; set; } = true;
     public bool CheckForUpdates { get; set; } = true;
 
     /// <summary>Last automatic or manual update check, stored in UTC.</summary>

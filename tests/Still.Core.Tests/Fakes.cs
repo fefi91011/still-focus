@@ -42,22 +42,6 @@ internal sealed class FakeProcessController : IProcessController
     }
 }
 
-internal sealed class FakeWebsiteBlocker : IWebsiteBlocker
-{
-    public bool CanBlock { get; set; } = true;
-    public string? UnavailableReason { get; set; }
-    public List<HashSet<string>> Calls { get; } = new();
-
-    public IReadOnlyCollection<string> Last =>
-        Calls.Count == 0 ? Array.Empty<string>() : Calls[^1];
-
-    public WebsiteApplyResult Apply(IReadOnlyCollection<string> domains)
-    {
-        Calls.Add(new HashSet<string>(domains, StringComparer.OrdinalIgnoreCase));
-        return WebsiteApplyResult.Ok(domains.Count);
-    }
-}
-
 internal sealed class FakeStartupInstaller : IStartupInstaller
 {
     public bool CanInstall { get; set; } = true;
@@ -72,7 +56,6 @@ internal sealed class FakePlatform : IPlatform
     public FakePlatform()
     {
         Processes = new FakeProcessController();
-        Websites = new FakeWebsiteBlocker();
     }
 
     public string DisplayName => "Test";
@@ -84,10 +67,6 @@ internal sealed class FakePlatform : IPlatform
     public FakeProcessController Processes { get; }
 
     IProcessController IPlatform.Processes => Processes;
-
-    public FakeWebsiteBlocker Websites { get; }
-
-    IWebsiteBlocker IPlatform.Websites => Websites;
 
     public IStartupInstaller Startup { get; } = new FakeStartupInstaller();
 

@@ -133,7 +133,7 @@
 
           <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,5,0,0">
             <Border Classes="chip">
-              <TextBlock Text="Hosts-Datei" FontSize="9.5" Classes="muted" />
+              <TextBlock Text="Browser-Erweiterung" FontSize="9.5" Classes="muted" />
             </Border>
             <Border Classes="chip">
               <TextBlock Text="Prozesse" FontSize="9.5" Classes="muted" />
